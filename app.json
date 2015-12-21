@@ -1,0 +1,56 @@
+{
+  "id": "com.milight",
+  "version": "0.0.1",
+  "compatibility": "0.x || 1.x",
+  "category": "lights",
+  "name": {
+    "en": "MiLight",
+    "nl": "Milight"
+  },
+  "description": {
+    "en": "Connect your MiLight and easybulb lamps with Homey.",
+    "nl": "Verbind je MiLight en easybulb lampen met Homey"
+  },
+  "author": {
+    "name": "Freek Boelders",
+    "website": "http://www.freekboelders.nl"
+  },
+  "images": {
+    "large": "./assets/images/large.jpg",
+    "small": "./assets/images/small.jpg"
+  },
+  "drivers": [
+    {
+      "id": "rgb_bulb",
+      "name": {
+        "en": "MiLight Bulb",
+        "nl": "MiLight Lamp"
+      },
+      "images": {
+        "large": "./drivers/socket/assets/images/large.jpg",
+        "small": "./drivers/socket/assets/images/small.jpg"
+      },
+      "class": "light",
+      "capabilities": [ "onoff", "dim", "light_hue" ],
+      "pair": [
+        {
+          "id": "start"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ]
+    }
+  ],
+  "dependencies": {
+    "milight": "1.0.0"
+  }
+}
