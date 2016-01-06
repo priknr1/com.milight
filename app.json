@@ -1,6 +1,6 @@
 {
   "id": "com.milight",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "compatibility": "0.x || 1.x",
   "category": "lights",
   "name": {
@@ -12,8 +12,7 @@
     "nl": "Verbind je MiLight en easybulb lampen met Homey"
   },
   "author": {
-    "name": "Freek Boelders",
-    "website": "http://www.freekboelders.nl"
+    "name": "Athom B.V."
   },
   "images": {
     "large": "./assets/images/large.jpg",
