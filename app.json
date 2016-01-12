@@ -4,12 +4,12 @@
   "compatibility": "0.x || 1.x",
   "category": "lights",
   "name": {
-    "en": "MiLight",
-    "nl": "Milight"
+    "en": "MiLight (easybulb)",
+    "nl": "MiLight (easybulb)"
   },
   "description": {
-    "en": "Connect your MiLight and easybulb lamps with Homey.",
-    "nl": "Verbind je MiLight en easybulb lampen met Homey"
+    "en": "Connect your MiLight (easybulb) lamps with Homey",
+    "nl": "Verbind je MiLight (easybulb) lampen met Homey"
   },
   "author": {
     "name": "Athom B.V."
@@ -22,15 +22,44 @@
     {
       "id": "rgb_bulb",
       "name": {
-        "en": "MiLight Bulb",
-        "nl": "MiLight Lamp"
+        "en": "MiLight RGB Bulb",
+        "nl": "MiLight RGB Lamp"
       },
       "images": {
         "large": "./drivers/socket/assets/images/large.jpg",
         "small": "./drivers/socket/assets/images/small.jpg"
       },
       "class": "light",
-      "capabilities": [ "onoff", "dim", "light_hue" ],
+      "capabilities": [ "onoff", "dim", "hue" ],
+      "pair": [
+        {
+          "id": "start"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ]
+    },
+    {
+      "id": "white_bulb",
+      "name": {
+        "en": "MiLight White Bulb",
+        "nl": "MiLight Witte Lamp"
+      },
+      "images": {
+        "large": "./drivers/socket/assets/images/large.jpg",
+        "small": "./drivers/socket/assets/images/small.jpg"
+      },
+      "class": "light",
+      "capabilities": [ "onoff", "dim", "light_temperature" ],
       "pair": [
         {
           "id": "start"
@@ -50,6 +79,6 @@
     }
   ],
   "dependencies": {
-    "milight": "1.0.0"
+    "node-milight-promise": "0.0.4"
   }
 }

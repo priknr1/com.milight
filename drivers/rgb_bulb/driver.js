@@ -2,42 +2,25 @@
 
 "use strict";
 
-var Milight = require("milight");
+var Milight = require('node-milight-promise').MilightController;
+var commands = require('node-milight-promise').commands;
 var devices = [];
 
-var milight = new Milight({
+var light = new Milight({
     host: "192.168.1.255", //use .225 at the end to do a search
     broadcast: true
 });
-
-//var devices contains:
-/*var devices 		= {
-	"uuid:fooUuid": { //uuid
-		"name": fooName,
-		"ip": 255.255.255.255,
-		"port": 1234,
-		"state": 0
-	}
-}*/
 		
 var self = {
 	
 	init: function( devices_homey, callback ){ // we're ready
-		Homey.log("The driver of MiLight started");
-
-		console.log("devices_homey", devices_homey);
+		Homey.log("The driver of MiLight RGB bulb started");
 
 		devices_homey.forEach(function(device){ //Loopt trough all registered devices
 
-				console.log("device", device)
-
-				devices.push(device)
+				devices.push(device) // Push every device to the local devices list
 
 			});
-
-		//devices.push(devices_homey);
-
-		console.log("devices", devices)
 
 		callback();
 	},
@@ -98,7 +81,7 @@ var self = {
 					callback( null, color ) //New state
 				});		
 			}
-		},
+		}
 	},
 	
 	pair: function( socket ) {
@@ -188,23 +171,24 @@ function setState( active_device, onoff, callback ) {
 
 		if (active_device.group == device.group) {
 
-			if (device.group == "all-color") {
-				if (onoff == true) milight.on();
-				if (onoff == false) milight.off();
+			if (device.group == "all-color") { // use group '0' for all
+				if (onoff == true) light.sendCommands(commands.rgbw.on(0), commands.rgbw.brightness(100));
+				if (onoff == false) light.sendCommands(commands.rgbw.off(0));
 
 				devices.forEach(function(device){
 					device.state = onoff; //Set the new state for all the devices
 				});
 
 			} else if (device.group == 1 || 2 || 3 || 4) {
-				if (onoff == true) milight.zone(device.group).on();
-				if (onoff == false) milight.zone(device.group).off();
+				if (onoff == true) light.sendCommands(commands.rgbw.on(device.group), commands.rgbw.brightness(100));
+				if (onoff == false) light.sendCommands(commands.rgbw.off(device.group));
 				
 				devices.forEach(function(device){
 					if (device.group == "all-color") {
 						device.state = onoff; //Set the new state for the all-color device
 					}
 				});
+
 			}
 
 			device.state = onoff; //Set the new state
@@ -234,17 +218,17 @@ function setDim( active_device, dim, callback ) {
 
 		if (active_device.group == device.group) {
 
-			if (device.group == "all-color") {
-				milight.brightness( Math.floor( dim*100 ) , function(err) {});
+			if (device.group == "all-color") { // use group '0' for all
+				light.sendCommands(commands.rgbw.on(0), commands.rgbw.brightness(dim*100));
 
 				devices.forEach(function(device){
 					device.dim = dim; //Set the new dim for all the devices
 				});
 
 			} else if (device.group == 1 || 2 || 3 || 4) {
-				milight.zone(device.group).brightness( Math.floor( dim*100 ) , function(err) {});
+				light.sendCommands(commands.rgbw.on(device.group), commands.rgbw.brightness(dim*100));
 				
-				devices.forEach(function(device){
+				devices.forEach(function(device){ 
 					if (device.group == "all-color") {
 						device.dim = dim; //Set the new dim for the all-color device
 					}
@@ -272,31 +256,22 @@ function getColor( active_device, callback ) {
 // Set the Color of a group
 function setColor( active_device, color, callback ) {
 
-	//Pre calculation because hue colors are shifted in the library! h - 120
-	var hueColor = color * 360;
-	console.log("SetDim color1", hueColor, color);
-	if (hueColor > 140) {
-		hueColor = Math.floor( hueColor - 140 );
-	} else if (hueColor < 140) {
-		hueColor = Math.floor( 360 - (140 - hueColor) );
-	}
-
 	devices.forEach(function(device){ //Loopt trough all registered devices
 
 		if (active_device.group == device.group) {
 
-			if (device.group == "all-color") {
-				milight.brightness( color , function(err) {});
-				milight.hsv( hueColor, -1, Math.floor( device.dim * 100 ), function(error) {}); // h(0-360), s(not used), v(0-100)
-				console.log("SetDim color2", hueColor, color);
+			if (device.group == "all-color") { // use group '0' for all
+				light.sendCommands(commands.rgbw.on(0), commands.rgbw.hue( color * 255 ));
+
+				console.log("SetDim color2", color * 255);
 
 				devices.forEach(function(device){
 					device.color = color; //Set the new color for all the devices
 				});
 
 			} else if (device.group == 1 || 2 || 3 || 4) {
-				milight.zone(device.group).hsv( hueColor, -1, Math.floor( device.dim * 100 ), function(error) {}); // h(0-360), s(not used), v(0-100)
-				console.log("SetDim color3", hueColor, color);
+				light.sendCommands(commands.rgbw.on(device.group), commands.rgbw.hue( color * 255 ));
+				console.log("SetDim color3", color * 255);
 
 				devices.forEach(function(device){
 					if (device.group == "all-color") {
