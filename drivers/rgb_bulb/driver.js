@@ -1,4 +1,7 @@
-//TO-DO: Fix RGB offset
+//To Do: Implement that light.pause is adjustable by the user,
+//		 Remove all-groups
+//		 Test RGB offset
+
 
 "use strict";
 
@@ -8,6 +11,7 @@ var devices = [];
 
 var light = new Milight({
     host: "192.168.1.255", //use .225 at the end to do a search
+    delayBetweenCommands: 50,
     broadcast: true
 });
 		

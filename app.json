@@ -30,7 +30,7 @@
         "small": "./drivers/socket/assets/images/small.jpg"
       },
       "class": "light",
-      "capabilities": [ "onoff", "dim", "hue" ],
+      "capabilities": [ "onoff", "dim", "light_hue" ],
       "pair": [
         {
           "id": "start"
