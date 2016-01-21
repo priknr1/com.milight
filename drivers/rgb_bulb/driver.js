@@ -1,5 +1,3 @@
-//To Do: Implement that light.pause is adjustable by the user,
-
 "use strict";
 
 var Milight = require('node-milight-promise').MilightController;

@@ -1,10 +1,9 @@
-//To Do: Implement that light.pause is adjustable by the user
-
 "use strict";
 
 var Milight = require('node-milight-promise').MilightController;
 var commands = require('node-milight-promise').commands;
 var devices = [];
+var pauseSpeed = 500;
 
 var light = new Milight({
     host: "192.168.1.255", //use .225 at the end to do a search
@@ -19,9 +18,11 @@ var self = {
 
 		devices_homey.forEach(function(device){ //Loopt trough all registered devices
 
-				devices.push(device) // Push every device to the local devices list
+			devices.push(device) // Push every device to the local devices list
 
-			});
+			getFadeSpeed(device); // Get FadeSpeed from local settings
+
+		});
 
 		callback();
 	},
@@ -191,6 +192,7 @@ function getDim( active_device, callback ) {
 
 // Set the Dim of a group
 function setDim( active_device, dim, callback ) {
+	console.log("pauseSpeed: ", pauseSpeed);
 	console.log("setDim: ", dim);
 	devices.forEach(function(device){ //Loopt trough all registered devices
 
@@ -212,13 +214,13 @@ function setDim( active_device, dim, callback ) {
 					for (var x = 0; x < dim_dif; x++) {
 						console.log("Brightness up");
 					    light.sendCommands(commands.white.on(device.group), commands.white.brightUp());;
-					    light.pause(1000);
+					    light.pause(pauseSpeed);
 					}
 				} else if (dim_dif < 0) { //Brighness down
 					for (var x = 0; x < -dim_dif; x++) {
 						console.log("Brightness down");
 						light.sendCommands(commands.white.on(device.group), commands.white.brightDown())
-					    light.pause(1000);
+					    light.pause(pauseSpeed);
 					}
 				}
 			}
@@ -255,13 +257,13 @@ function setTemperature( active_device, temp, callback ) {
 			for (var x = 0; x < temp_dif; x++) {
 				console.log("Warmer");
 			    light.sendCommands(commands.white.on(device.group), commands.white.warmer());;
-			    light.pause(1000);
+			    light.pause(pauseSpeed);
 			}
 		} else if (temp_dif < 0) { //Cooler down
 			for (var x = 0; x < -temp_dif; x++) {
 				console.log("Cooler");
 				light.sendCommands(commands.white.on(device.group), commands.white.cooler())
-			    light.pause(1000);
+			    light.pause(pauseSpeed);
 			}
 		}
 
@@ -270,6 +272,18 @@ function setTemperature( active_device, temp, callback ) {
 		callback( null, device.temp ); //Calback the new temp
 
 	});
+}
+
+function getFadeSpeed ( device ) {
+	module.exports.getSettings( device, function( err, settings ){ 
+	    pauseSpeed = settings.fade_speed * 250; // Will be between 250 ms and 1500 ms
+	})
+
+	module.exports.settings = function( device_data, newSettingsObj, oldSettingsObj, changedKeysArr, callback ) { //Realtime change
+	    pauseSpeed = newSettingsObj.fade_speed * 250; // Will be between 500 ms and 1500 ms
+
+	    callback( null, true );
+	}
 }
 
 module.exports = self;
