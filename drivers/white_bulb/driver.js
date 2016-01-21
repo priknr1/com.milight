@@ -1,5 +1,4 @@
 //To Do: Implement that light.pause is adjustable by the user
-//		 Remove all-groups
 
 "use strict";
 
@@ -95,17 +94,6 @@ var self = {
 			Homey.log("List devices");
 
 			var devices_list 		= [
-				{
-                    name: "All white groups",
-                    data: {
-                        id: "all-white-groups",
-                        group: "all-white",
-                        state: true,
-                        dim: 1,
-                        white: 1,
-                        temp: 1
-                    }
-                },
                 {
                     name: "white group 1",
                     data: {
@@ -174,32 +162,16 @@ function getState( active_device, callback ) {
 
 // Set the State of a group
 function setState( active_device, onoff, callback ) {
+	console.log("setState: ", onoff);
 	devices.forEach(function(device){ //Loopt trough all registered devices
 
 		if (active_device.group == device.group) {
-
-			if (device.group == "all-white") { // use group '0' for all
-				if (onoff == true) light.sendCommands(commands.white.on(0));
-				if (onoff == false) light.sendCommands(commands.white.off(0));
-
-				devices.forEach(function(device){
-					device.state = onoff; //Set the new state for all the devices
-				});
-
-			} else if (device.group == 1 || 2 || 3 || 4) {
-				if (onoff == true) light.sendCommands(commands.white.on(device.group));
-				if (onoff == false) light.sendCommands(commands.white.off(device.group));
-				
-				devices.forEach(function(device){
-					if (device.group == "all-white") {
-						device.state = onoff; //Set the new state for the all-white device
-					}
-				});
-
-			}
+			if (onoff == true) light.sendCommands(commands.white.on(device.group));
+			if (onoff == false) light.sendCommands(commands.white.off(device.group));
 
 			device.state = onoff; //Set the new state
 			callback( null, device.state ); //Calback the new state
+
 		}
 	});
 }
@@ -219,66 +191,34 @@ function getDim( active_device, callback ) {
 
 // Set the Dim of a group
 function setDim( active_device, dim, callback ) {
+	console.log("setDim: ", dim);
 	devices.forEach(function(device){ //Loopt trough all registered devices
 
-		console.log("SetDim device", device);
+		//console.log("SetDim device", device);
 
 		if (active_device.group == device.group) {
 
-			if (device.group == "all-white") { // use group '0' for all
-				if (dim < 0.1) { //Totally off
-					light.sendCommands(commands.white.off(0));
+			if (dim < 0.1) { //Totally off
+				light.sendCommands(commands.white.off(device.group));
 
-				} else if (dim > 0.9) { //Totally on
-					light.sendCommands(commands.white.maxBright(0));
-
-				} else {
-					var dim_dif = Math.round((dim - device.dim) * 10);
-					console.log("dim_dif", dim_dif, "last_dim", device.dim, "dim", dim);
-
-					if (dim_dif > 0 ) { //Brighness up
-						for (var x = 0; x < dim_dif; x++) {
-							console.log("Brightness up");
-						    light.sendCommands(commands.white.on(0), commands.white.brightUp());;
-						    light.pause(1000);
-						}
-					} else if (dim_dif < 0) { //Brighness down
-						for (var x = 0; x < -dim_dif; x++) {
-							console.log("Brightness down");
-							light.sendCommands(commands.white.on(0), commands.white.brightDown())
-						    light.pause(1000);
-						}
-					}
-				}
-
-				devices.forEach(function(device){
-					device.dim = dim; //Set the new dim for all the devices
-				});
-
-			} else if (device.group == 1 || 2 || 3 || 4) {
+			} else if (dim > 0.9) { //Totally on
+				light.sendCommands(commands.white.maxBright(device.group));
 				
-				if (dim < 0.1) { //Totally off
-					light.sendCommands(commands.white.off(device.group));
+			} else {
+				var dim_dif = Math.round((dim - device.dim) * 10);
+				console.log("dim_dif", dim_dif, "last_dim", device.dim, "dim", dim);
 
-				} else if (dim > 0.9) { //Totally on
-					light.sendCommands(commands.white.maxBright(device.group));
-					
-				} else {
-					var dim_dif = Math.round((dim - device.dim) * 10);
-					console.log("dim_dif", dim_dif, "last_dim", device.dim, "dim", dim);
-
-					if (dim_dif > 0 ) { //Brighness up
-						for (var x = 0; x < dim_dif; x++) {
-							console.log("Brightness up");
-						    light.sendCommands(commands.white.on(device.group), commands.white.brightUp());;
-						    light.pause(1000);
-						}
-					} else if (dim_dif < 0) { //Brighness down
-						for (var x = 0; x < -dim_dif; x++) {
-							console.log("Brightness down");
-							light.sendCommands(commands.white.on(device.group), commands.white.brightDown())
-						    light.pause(1000);
-						}
+				if (dim_dif > 0 ) { //Brighness up
+					for (var x = 0; x < dim_dif; x++) {
+						console.log("Brightness up");
+					    light.sendCommands(commands.white.on(device.group), commands.white.brightUp());;
+					    light.pause(1000);
+					}
+				} else if (dim_dif < 0) { //Brighness down
+					for (var x = 0; x < -dim_dif; x++) {
+						console.log("Brightness down");
+						light.sendCommands(commands.white.on(device.group), commands.white.brightDown())
+					    light.pause(1000);
 					}
 				}
 			}
@@ -305,59 +245,30 @@ function getTemperature( active_device, callback ) {
 
 // Set the Temperature of a group
 function setTemperature( active_device, temp, callback ) {
+	console.log("setTemperature: ", temp);
 	devices.forEach(function(device){ //Loopt trough all registered devices
-
-		console.log("SetTemperature device", device);
-
-		if (active_device.group == device.group) {
-
-			if (device.group == "all-white") { // use group '0' for all
 				
-				var temp_dif = Math.round((temp - device.temp) * 10);
-				console.log("temp_dif", temp_dif, "last_temp", device.temp, "temp", temp);
+		var temp_dif = Math.round((temp - device.temp) * 10);
+		console.log("temp_dif", temp_dif, "last_temp", device.temp, "temp", temp);
 
-				if (temp_dif > 0 ) { //Wamer up
-					for (var x = 0; x < temp_dif; x++) {
-						console.log("Warmer");
-					    light.sendCommands(commands.white.on(0), commands.white.warmer());;
-					    light.pause(1000);
-					}
-				} else if (temp_dif < 0) { //Cooler down
-					for (var x = 0; x < -temp_dif; x++) {
-						console.log("Cooler");
-						light.sendCommands(commands.white.on(0), commands.white.cooler())
-					    light.pause(1000);
-					}
-				}
-
-				devices.forEach(function(device){
-					device.temp = temp; //Set the new temp for all the devices
-				});
-
-			} else if (device.group == 1 || 2 || 3 || 4) {
-				
-				var temp_dif = Math.round((temp - device.temp) * 10);
-				console.log("temp_dif", temp_dif, "last_temp", device.temp, "temp", temp);
-
-				if (temp_dif > 0 ) { //Wamer up
-					for (var x = 0; x < temp_dif; x++) {
-						console.log("Warmer");
-					    light.sendCommands(commands.white.on(device.group), commands.white.warmer());;
-					    light.pause(1000);
-					}
-				} else if (temp_dif < 0) { //Cooler down
-					for (var x = 0; x < -temp_dif; x++) {
-						console.log("Cooler");
-						light.sendCommands(commands.white.on(device.group), commands.white.cooler())
-					    light.pause(1000);
-					}
-				}
+		if (temp_dif > 0 ) { //Wamer up
+			for (var x = 0; x < temp_dif; x++) {
+				console.log("Warmer");
+			    light.sendCommands(commands.white.on(device.group), commands.white.warmer());;
+			    light.pause(1000);
 			}
-
-			device.temp = temp; //Set the new temp
-			console.log("setState callback", device.temp);
-			callback( null, device.temp ); //Calback the new temp
+		} else if (temp_dif < 0) { //Cooler down
+			for (var x = 0; x < -temp_dif; x++) {
+				console.log("Cooler");
+				light.sendCommands(commands.white.on(device.group), commands.white.cooler())
+			    light.pause(1000);
+			}
 		}
+
+		device.temp = temp; //Set the new temp
+		console.log("setState callback", device.temp);
+		callback( null, device.temp ); //Calback the new temp
+
 	});
 }
 

@@ -1,7 +1,4 @@
 //To Do: Implement that light.pause is adjustable by the user,
-//		 Remove all-groups
-//		 Test RGB offset
-
 
 "use strict";
 
@@ -97,16 +94,6 @@ var self = {
 			Homey.log("List devices");
 
 			var devices_list 		= [
-				{
-                    name: "All color groups",
-                    data: {
-                        id: "all-color-groups",
-                        group: "all-color",
-                        state: true,
-                        dim: 1,
-                        color: 1
-                    }
-                },
                 {
                     name: "Color group 1",
                     data: {
@@ -171,29 +158,13 @@ function getState( active_device, callback ) {
 
 // Set the State of a group
 function setState( active_device, onoff, callback ) {
+	console.log("setState :", onoff);
 	devices.forEach(function(device){ //Loopt trough all registered devices
 
 		if (active_device.group == device.group) {
 
-			if (device.group == "all-color") { // use group '0' for all
-				if (onoff == true) light.sendCommands(commands.rgbw.on(0), commands.rgbw.brightness(100));
-				if (onoff == false) light.sendCommands(commands.rgbw.off(0));
-
-				devices.forEach(function(device){
-					device.state = onoff; //Set the new state for all the devices
-				});
-
-			} else if (device.group == 1 || 2 || 3 || 4) {
-				if (onoff == true) light.sendCommands(commands.rgbw.on(device.group), commands.rgbw.brightness(100));
-				if (onoff == false) light.sendCommands(commands.rgbw.off(device.group));
-				
-				devices.forEach(function(device){
-					if (device.group == "all-color") {
-						device.state = onoff; //Set the new state for the all-color device
-					}
-				});
-
-			}
+			if (onoff == true) light.sendCommands(commands.rgbw.on(device.group), commands.rgbw.brightness(100));
+			if (onoff == false) light.sendCommands(commands.rgbw.off(device.group));
 
 			device.state = onoff; //Set the new state
 			callback( null, device.state ); //Calback the new state
@@ -216,32 +187,17 @@ function getDim( active_device, callback ) {
 
 // Set the Dim of a group
 function setDim( active_device, dim, callback ) {
+	console.log("setDim: ", dim);
 	devices.forEach(function(device){ //Loopt trough all registered devices
 
 		console.log("SetDim device", device);
 
 		if (active_device.group == device.group) {
 
-			if (device.group == "all-color") { // use group '0' for all
-				light.sendCommands(commands.rgbw.on(0), commands.rgbw.brightness(dim*100));
-
-				devices.forEach(function(device){
-					device.dim = dim; //Set the new dim for all the devices
-				});
-
-			} else if (device.group == 1 || 2 || 3 || 4) {
-				light.sendCommands(commands.rgbw.on(device.group), commands.rgbw.brightness(dim*100));
-				
-				devices.forEach(function(device){ 
-					if (device.group == "all-color") {
-						device.dim = dim; //Set the new dim for the all-color device
-					}
-				});
-			}
-
+			light.sendCommands(commands.rgbw.on(device.group), commands.rgbw.brightness(dim*100));
+			
 			device.dim = dim; //Set the new dim
-			console.log("setState callback", device.dim);
-			callback( null, device.dim ); //Calback the new dim
+			callback( null, device.dim ); //Calback the new dim	
 		}
 	});
 }
@@ -259,35 +215,29 @@ function getColor( active_device, callback ) {
 
 // Set the Color of a group
 function setColor( active_device, color, callback ) {
+	console.log("setcolor: ", color);
+	var milight_color = convertToMilightColor(color);
 
 	devices.forEach(function(device){ //Loopt trough all registered devices
 
 		if (active_device.group == device.group) {
 
-			if (device.group == "all-color") { // use group '0' for all
-				light.sendCommands(commands.rgbw.on(0), commands.rgbw.hue( color * 255 ));
-
-				console.log("SetDim color2", color * 255);
-
-				devices.forEach(function(device){
-					device.color = color; //Set the new color for all the devices
-				});
-
-			} else if (device.group == 1 || 2 || 3 || 4) {
-				light.sendCommands(commands.rgbw.on(device.group), commands.rgbw.hue( color * 255 ));
-				console.log("SetDim color3", color * 255);
-
-				devices.forEach(function(device){
-					if (device.group == "all-color") {
-						device.color = color; //Set the new color for the all-color device
-					}
-				});
-			}
+			light.sendCommands(commands.rgbw.on(device.group), commands.rgbw.hue( milight_color));
 
 			device.color = color; //Set the new color
 			callback( null, device.color ); //Calback the new color
 		}
 	});
+}
+
+/**
+ * convertToMilightColor
+ * INPUT: hue_color beteen 0 - 1
+ * OUTPUT: milight_color between 0 - 255
+ */
+function convertToMilightColor ( hue_color )  {
+	var milight_color = (256 + 176 - Math.floor(Number(hue_color) * 255.0)) % 256;
+	return milight_color;
 }
 
 module.exports = self;
