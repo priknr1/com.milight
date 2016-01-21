@@ -9,4 +9,4 @@ Also compatible with:
 - s`luce
 - iLight
 - iBulb
-- Kreuzer.
+- Kreuzer
