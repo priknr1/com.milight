@@ -20,6 +20,35 @@
   },
   "drivers": [
     {
+      "id": "rgbw_bulb",
+      "name": {
+        "en": "MiLight RGBW Bulb",
+        "nl": "MiLight RGBW Lamp"
+      },
+      "images": {
+        "large": "./drivers/rgb_bulb/assets/images/large.jpg",
+        "small": "./drivers/rgb_bulb/assets/images/small.jpg"
+      },
+      "class": "light",
+      "capabilities": [ "onoff", "dim", "light_hue", "light_temperature" ],
+      "pair": [
+        {
+          "id": "start"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ]
+    },
+    {
       "id": "rgb_bulb",
       "name": {
         "en": "MiLight RGB Bulb",
