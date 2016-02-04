@@ -51,8 +51,8 @@
     {
       "id": "rgb_bulb",
       "name": {
-        "en": "MiLight RGB Bulb",
-        "nl": "MiLight RGB Lamp"
+        "en": "MiLight RGB Bulb (untested)",
+        "nl": "MiLight RGB Lamp (niet getest)"
       },
       "images": {
         "large": "./drivers/rgb_bulb/assets/images/large.jpg",
