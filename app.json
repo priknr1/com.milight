@@ -1,6 +1,6 @@
 {
   "id": "com.milight",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "compatibility": "0.x || 1.x",
   "category": "lights",
   "name": {
@@ -74,6 +74,30 @@
         {
           "id": "add_devices",
           "template": "add_devices"
+        }
+      ],
+        "settings": [
+        {
+          "type": "group",
+            "label": {
+                "en": "General settings",
+                "nl": "Algemene instellingen"
+            },
+          "children": [
+            {
+              "id": "fade_speed",
+              "type": "number",
+              "label": {
+                  "en": "Fade speed (0 - 6)",
+                  "nl": "Snelheid van vervagen (0 - 6)"
+              },
+              "value": 1,
+              "attr": {
+                  "min": 0,
+                  "max": 6
+              }
+            }
+          ]
         }
       ]
     },

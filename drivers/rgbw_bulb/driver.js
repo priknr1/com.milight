@@ -1,24 +1,17 @@
 "use strict";
 
-var Milight      = require('node-milight-promise').MilightController;
-var commands     = require('node-milight-promise').commands;
+var Milight      	= require('node-milight-promise').MilightController;
+var commands     	= require('node-milight-promise').commands;
 
-var util		 = require('util');
-var events		 = require('events');
-var dgram 		 = require('dgram');
-var Emitter      = require('events').EventEmitter;
+var util		 	= require('util');
 
 var newFoundDevices = [];
-var devices      = [];
-var foundDevices = [];
-var foundEmitter = new Emitter();
+var devices      	= [];
 		
 var self = {
 	
 	init: function( devices_homey, callback ){
 		Homey.log("The driver of MiLight RGBW bulb started");
-
-		discoverBridges();
 
 		//Loop trough all registered devices
 		devices_homey.forEach(function(device_data){ 
@@ -29,7 +22,7 @@ var self = {
 		});
 		
 		//When a new bridge is found
-		foundEmitter.on('newBridgeFound', function(device){
+		Homey.app.foundEmitter.on('newBridgeFound', function(device){
 			console.log("New bridge found:", device);
 		
 			devices_homey.forEach(function(device_data){
@@ -124,28 +117,28 @@ var self = {
 	pair: function( socket ) {
 		socket.on( "start", function( data, callback ){
 			Homey.log('MiLight pairing has started');
-			newFoundDevices = [];
 		}),
 		
 		socket.on( "list_devices", function( data, callback ){
 			Homey.log("List devices: ", data);
 
-			// when a new device has been found
-			foundEmitter.on('bridgeFound', function(device){
-				console.log("newFoundDevices: ", newFoundDevices);
-				console.log("socket1", socket);
-				if (newFoundDevices.length > 0 && socket) { // If newFoundDevices contains devices and socket exists
+			Homey.app.foundEmitter.on('bridgeFound', function(device){
+				if (!Object.keys(data).length && socket) { //No devices found yet (first time called during while pairing)
+				  	newFoundDevices = []; //Empy the old newFoundDevices
+
+				  	socket.emit('list_devices', formatDevice(device));
+					newFoundDevices.push(formatDevice(device));
+
+				} else if (socket) { //Already devices found
+
 					newFoundDevices.forEach(function(device_){
-						console.log("socket2", socket);
-						if( device_[0].data.uuid != device.uuid ) {
+						
+						if( device_[0].data.uuid != device.uuid ) { // Check if device is already in the list
 							socket.emit('list_devices', formatDevice(device));
-						    newFoundDevices.push(device);
+						    newFoundDevices.push(formatDevice(device));
+
 						}
 					})
-				} else if (socket) {
-					console.log("socket3", socket);
-					socket.emit('list_devices', formatDevice(device));
-					newFoundDevices.push(formatDevice(device));
 				}
 			})
 		}),
@@ -294,53 +287,6 @@ function convertToMilightColor ( hue_color )  {
 	return milight_color;
 }
 
-// Discover available Bridges
-function discoverBridges () {
-	var message = new Buffer ('Link_Wi-Fi');
-	var server = dgram.createSocket("udp4");
-
-	server.bind( function() {
-	  server.setBroadcast(true)
-	  server.setMulticastTTL(128);
-	  setInterval(broadcastNew, 5000);
-	});
-	
-	// Broadcast a new discover message
-	function broadcastNew() {
-		getDiscoverIp ( function(err, discoverIp) {
-			console.log("Send broadcast message with ip: ", discoverIp);
-			server.send(message, 0, message.length, 48899, discoverIp);
-		})
-	} 
-
-	//empty foundDevices once a day
-	function resetFoundDevices() {
-		foundDevices = [];
-	}
-	setInterval(resetFoundDevices, 86400000);
-
-	// Listen for emission of the "message" event.
-	server.on('message', function (message, remote) {
-	    message = message.toString('utf-8');
-	    message = message.split(",");
-	    var uuid = message[1];
-
-	    var device = {
-		    address		: remote.address,
-		    uuid		: uuid
-	    }
-	    
-		foundEmitter.emit('bridgeFound', device); //Emit a bridge is found
-
-	    if (foundDevices.indexOf(remote.address) > -1) { // If address is already in the array
-		    //Do nothing
-		} else {
-			foundDevices.push(remote.address);
-		    foundEmitter.emit('newBridgeFound', device); //Emit a NEW bridge is found
-		}
-	});
-}
-
 // Connect to the device by matching IP and making and give it a bridge object
 function connectToDevice( device, device_data, callback ) {
 	console.log("Connect to device");
@@ -373,24 +319,13 @@ function connectToDevice( device, device_data, callback ) {
 	
 }
 
-// Get the Discover Ip based on Homeys IP to discover devices
-function getDiscoverIp( callback ) {
-	Homey.manager('cloud').getLocalAddress(function( err, address){
-        var address = address.split(":");
-		address = address[0]; //Remove the port
-		address = address.split(".");
-		address = address[0] + "." + address[1] + "." + address[2] + ".255"; //Get first three int and then .255
-        callback (null, address); // Returns Homey's IP with .255 at the end (for example: 192.168.1.255)
-    });
-}
-
 // Used during pairing to format the device in such a way that is possible to use 'list devices'
 function formatDevice( device ) {
 	var array = [
 		{
-			name: 'Color Group 1: Bridge (' + device.uuid + ')',
+			name: 'RGBW Group 1: Bridge (' + device.uuid + ')',
 			data: {
-				id: device.uuid + "-1",
+				id: "RGBW" + device.uuid + "-1",
 				uuid: device.uuid,
 				ip: device.address,
 				group: "1",
@@ -401,12 +336,12 @@ function formatDevice( device ) {
 	        }
     	},
 		{
-			name: 'Color Group 2: Bridge (' + device.uuid + ')',
+			name: 'RGBW Group 2: Bridge (' + device.uuid + ')',
 			data: {
-				id: device.uuid + "-2",
+				id: "RGBW" + device.uuid + "-2",
 				uuid: device.uuid,
 				ip: device.address,
-				group: "1",
+				group: "2",
 	            state: true,
 	            dim: 1,
 	            color: 1,
@@ -414,12 +349,12 @@ function formatDevice( device ) {
 	        }
     	},
 		{
-			name: 'Color Group 3: Bridge (' + device.uuid + ')',
+			name: 'RGBW Group 3: Bridge (' + device.uuid + ')',
 			data: {
-				id: device.uuid + "-3",
+				id: "RGBW" + device.uuid + "-3",
 				uuid: device.uuid,
 				ip: device.address,
-				group: "1",
+				group: "3",
 	            state: true,
 	            dim: 1,
 	            color: 1,
@@ -427,12 +362,12 @@ function formatDevice( device ) {
 	        }
     	},
 		{
-			name: 'Color Group 4: Bridge (' + device.uuid + ')',
+			name: 'RGBW Group 4: Bridge (' + device.uuid + ')',
 			data: {
-				id: device.uuid + "-4",
+				id: "RGBW" + device.uuid + "-4",
 				uuid: device.uuid,
 				ip: device.address,
-				group: "1",
+				group: "4",
 	            state: true,
 	            dim: 1,
 	            color: 1,
