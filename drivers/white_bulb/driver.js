@@ -99,31 +99,33 @@ var self = {
 	pair: function( socket ) {
 		socket.on( "start", function( data, callback ){
 			Homey.log('MiLight pairing has started');
-			newFoundDevices = [];
+			newFoundDevices = [formatDevice( {uuid: "dummy"}, 0 )]; //Enter dummy data to empty
+
 		}),
 		
 		socket.on( "list_devices", function( data, callback ){
-			Homey.log("List devices: ", data);
+			Homey.log("list_devices: ", data);
 
-			Homey.app.foundEmitter.on('bridgeFound', function(device){
-				if (!Object.keys(data).length && socket) { //No devices found yet (first time called during while pairing)
-				  	newFoundDevices = []; //Empy the old newFoundDevices
+			function listener(device){
+				for (var group = 1; group < 5; group++) { //Walk to all 4 groups
+					var formatedDevice = formatDevice(device, group);
+					var alreadyFound = false;
 
-				  	socket.emit('list_devices', formatDevice(device));
-					newFoundDevices.push(formatDevice(device));
-
-				} else if (socket) { //Already devices found
-
-					newFoundDevices.forEach(function(device_){
-						
-						if( device_[0].data.uuid != device.uuid ) { // Check if device is already in the list
-							socket.emit('list_devices', formatDevice(device));
-						    newFoundDevices.push(formatDevice(device));
-
+					newFoundDevices.forEach(function(device_) {
+						if (formatedDevice[0].data.id == device_[0].data.id) { //Check if the found device is the same as one of the existing ones
+						  	alreadyFound = true;
+						  	Homey.app.foundEmitter.removeListener('bridgeFound', listener); //Stop listening to the events
 						}
-					})
+				  	})
+
+				  	if (alreadyFound == false) {
+				  		socket.emit('list_devices', formatedDevice);
+				  		newFoundDevices.push(formatedDevice);
+				  	}
 				}
-			})
+			}
+
+			Homey.app.foundEmitter.on('bridgeFound', listener);
 		}),
 
 		socket.on( "add_device", function( device, callback ){
@@ -146,6 +148,16 @@ var self = {
 			callback( null, true );
 		})
 	},
+
+	deleted: function ( device_data ) {
+		console.log("Device is removed: ", device_data);
+
+		for( var device_id in devices ) {
+			if (device_id == device_data.id) {
+				delete devices[device_id]; // Remove item from local device list
+			}
+		}
+	}
 	
 }
 
@@ -317,59 +329,20 @@ function connectToDevice( device, device_data, callback ) {
 }
 
 // Used during pairing to format the device in such a way that is possible to use 'list devices'
-function formatDevice( device ) {
-	var array = [
-		{
-			name: 'White Group 1: Bridge (' + device.uuid + ')',
-			data: {
-				id: "White" + device.uuid + "-1",
-				uuid: device.uuid,
-				ip: device.address,
-				group: "1",
-	            state: true,
-	            dim: 1,
-	            temperature: 1
-	        }
-    	},
-		{
-			name: 'White Group 2: Bridge (' + device.uuid + ')',
-			data: {
-				id: "White" + device.uuid + "-2",
-				uuid: device.uuid,
-				ip: device.address,
-				group: "2",
-	            state: true,
-	            dim: 1,
-	            temperature: 1
-	        }
-    	},
-		{
-			name: 'White Group 3: Bridge (' + device.uuid + ')',
-			data: {
-				id: "White" + device.uuid + "-3",
-				uuid: device.uuid,
-				ip: device.address,
-				group: "3",
-	            state: true,
-	            dim: 1,
-	            temperature: 1
-	        }
-    	},
-		{
-			name: 'White Group 4: Bridge (' + device.uuid + ')',
-			data: {
-				id: "White" + device.uuid + "-4",
-				uuid: device.uuid,
-				ip: device.address,
-				group: "4",
-	            state: true,
-	            dim: 1,
-	            temperature: 1
-	        }
-    	}
-	];
+function formatDevice( device, group ) {
+	var array = [{
+		name: 'White Group ' + group +': Bridge (' + device.uuid + ')',
+		data: {
+			id: "White-" + device.uuid + "-" + group,
+			uuid: device.uuid,
+			ip: device.address,
+			group: group,
+            state: true,
+            dim: 1,
+            temperature: 1
+        }
+	}];
 
-	console.log(array);	
 	return array;
 }
 

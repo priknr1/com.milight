@@ -1,6 +1,6 @@
 {
   "id": "com.milight",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "compatibility": "0.x || 1.x",
   "category": "lights",
   "name": {
@@ -22,8 +22,8 @@
     {
       "id": "rgbw_bulb",
       "name": {
-        "en": "MiLight RGBW Bulb",
-        "nl": "MiLight RGBW Lamp"
+        "en": "RGBW Bulb",
+        "nl": "RGBW Lamp"
       },
       "images": {
         "large": "./drivers/rgb_bulb/assets/images/large.jpg",
@@ -51,8 +51,8 @@
     {
       "id": "rgb_bulb",
       "name": {
-        "en": "MiLight RGB Bulb (untested)",
-        "nl": "MiLight RGB Lamp (niet getest)"
+        "en": "RGB Bulb (untested)",
+        "nl": "RGB Lamp (niet getest)"
       },
       "images": {
         "large": "./drivers/rgb_bulb/assets/images/large.jpg",
@@ -104,8 +104,8 @@
     {
       "id": "white_bulb",
       "name": {
-        "en": "MiLight White Bulb",
-        "nl": "MiLight Witte Lamp"
+        "en": "White Bulb",
+        "nl": "Witte Lamp"
       },
       "images": {
         "large": "./drivers/white_bulb/assets/images/large.jpg",

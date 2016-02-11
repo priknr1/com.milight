@@ -1,6 +1,7 @@
 <script type="text/javascript">
-Homey.setTitle( __('pair.rgb_bulb.title') );
+Homey.emit( 'start' );
 Homey.emit('search', function(err, foundDevices){
+	Homey.setTitle( __('pair.title') );
 	Homey.showView('list_devices');
 });
 </script>
