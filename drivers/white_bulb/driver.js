@@ -28,7 +28,7 @@ var self = {
 		
 			devices_homey.forEach(function(device_data){
 			
-				connectToDevice( device, device_data, function(){} ); //Connect to Device is bridge is matching
+				connectToDevice( device, device_data, function(){} ); //Connect to Device if bridge is matching
 				
 			});
 						
@@ -40,8 +40,9 @@ var self = {
 	capabilities: {
 		onoff: {
 			get: function( device, callback ){
+				Homey.log('Get state1:', err, state);
 				getState(device, function(err, state) {
-					Homey.log('Get state:', state);
+					Homey.log('Get state2:', err, state);
 					module.exports.realtime( device, 'onoff', state );
 					callback( null, state ) //New state
 				});
@@ -109,23 +110,22 @@ var self = {
 			function listener(device){
 				for (var group = 1; group < 5; group++) { //Walk to all 4 groups
 					var formatedDevice = formatDevice(device, group);
-					var alreadyFound = false;
 
-					newFoundDevices.forEach(function(device_) {
-						if (formatedDevice[0].data.id == device_[0].data.id) { //Check if the found device is the same as one of the existing ones
-						  	alreadyFound = true;
-						  	Homey.app.foundEmitter.removeListener('bridgeFound', listener); //Stop listening to the events
-						}
+					// Check if the devices are already found
+				  	checkAlreadyFound (formatedDevice, newFoundDevices, function (found) {
+				  		if (!found) {
+				  			newFoundDevices.push(formatedDevice);
+				  			socket.emit('list_devices', formatedDevice)
+				  		}
 				  	})
-
-				  	if (alreadyFound == false) {
-				  		socket.emit('list_devices', formatedDevice);
-				  		newFoundDevices.push(formatedDevice);
-				  	}
 				}
 			}
 
 			Homey.app.foundEmitter.on('bridgeFound', listener);
+
+			setTimeout (function() {
+				Homey.app.foundEmitter.removeListener('bridgeFound', listener); //Stop listening to the events
+			}, 600000) //10 min
 		}),
 
 		socket.on( "add_device", function( device, callback ){
@@ -326,6 +326,17 @@ function connectToDevice( device, device_data, callback ) {
 
 	})
 	
+}
+
+function checkAlreadyFound (formatedDevice, newFoundDevices, callback) {
+	var alreadyFound = false;
+	newFoundDevices.forEach(function(device_) {
+		console.log("Checks", formatedDevice[0].data.id, device_[0].data.id);
+		if (formatedDevice[0].data.id == device_[0].data.id) { //Check if the found device is the same as one of the existing ones
+		  	alreadyFound = true;
+		}
+  	})
+  	callback (alreadyFound);
 }
 
 // Used during pairing to format the device in such a way that is possible to use 'list devices'

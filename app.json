@@ -51,8 +51,8 @@
     {
       "id": "rgb_bulb",
       "name": {
-        "en": "RGB Bulb (untested)",
-        "nl": "RGB Lamp (niet getest)"
+        "en": "RGB Bulb (beta)",
+        "nl": "RGB Lamp (beta)"
       },
       "images": {
         "large": "./drivers/rgb_bulb/assets/images/large.jpg",

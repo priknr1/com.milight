@@ -27,7 +27,7 @@ var self = {
 		
 			devices_homey.forEach(function(device_data){
 			
-				connectToDevice( device, device_data, function(){} ); //Connect to Device is bridge is matching
+				connectToDevice( device, device_data, function(){} ); //Connect to Device if bridge is matching
 				
 			});
 						
@@ -127,23 +127,22 @@ var self = {
 			function listener(device){
 				for (var group = 1; group < 5; group++) { //Walk to all 4 groups
 					var formatedDevice = formatDevice(device, group);
-					var alreadyFound = false;
 
-					newFoundDevices.forEach(function(device_) {
-						if (formatedDevice[0].data.id == device_[0].data.id) { //Check if the found device is the same as one of the existing ones
-						  	alreadyFound = true;
-						  	Homey.app.foundEmitter.removeListener('bridgeFound', listener); //Stop listening to the events
-						}
+					// Check if the devices are already found
+				  	checkAlreadyFound (formatedDevice, newFoundDevices, function (found) {
+				  		if (!found) {
+				  			newFoundDevices.push(formatedDevice);
+				  			socket.emit('list_devices', formatedDevice)
+				  		}
 				  	})
-
-				  	if (alreadyFound == false) {
-				  		socket.emit('list_devices', formatedDevice);
-				  		newFoundDevices.push(formatedDevice);
-				  	}
 				}
 			}
 
 			Homey.app.foundEmitter.on('bridgeFound', listener);
+
+			setTimeout (function() {
+				Homey.app.foundEmitter.removeListener('bridgeFound', listener); //Stop listening to the events
+			}, 600000) //10 min
 		}),
 
 		socket.on( "add_device", function( device, callback ){
@@ -195,11 +194,16 @@ function setState( active_device, onoff, callback ) {
 
 		if (active_device.group == device.group) {
 
-			if (onoff == true) device.bridge.sendCommands(commands.rgbw.on(device.group), commands.rgbw.brightness(100));
-			if (onoff == false) device.bridge.sendCommands(commands.rgbw.off(device.group));
+			// TO DO:
+			// checkAvailability (device, function (available) {
+			//	if (available) {
+					if (onoff == true) device.bridge.sendCommands(commands.rgbw.on(device.group), commands.rgbw.brightness(100));
+					if (onoff == false) device.bridge.sendCommands(commands.rgbw.off(device.group));
 
-			device.state = onoff; //Set the new state
-			callback( null, device.state ); //Callback the new state
+					device.state = onoff; //Set the new state
+					callback( null, device.state ); //Callback the new state
+			//	}
+			//})
 		}
 	});
 }
@@ -331,6 +335,17 @@ function connectToDevice( device, device_data, callback ) {
 	
 }
 
+function checkAlreadyFound (formatedDevice, newFoundDevices, callback) {
+	var alreadyFound = false;
+	newFoundDevices.forEach(function(device_) {
+		console.log("Checks", formatedDevice[0].data.id, device_[0].data.id);
+		if (formatedDevice[0].data.id == device_[0].data.id) { //Check if the found device is the same as one of the existing ones
+		  	alreadyFound = true;
+		}
+  	})
+  	callback (alreadyFound);
+}
+
 // Used during pairing to format the device in such a way that is possible to use 'list devices'
 function formatDevice( device, group ) {
 	var array = [{
@@ -348,6 +363,30 @@ function formatDevice( device, group ) {
 	}];
 
 	return array;
+}
+
+function checkAvailability( device, callback ) {
+	console.log("Availability", device);
+
+		var hosts = ['192.168.1.1', 'google.com', 'yahoo.com'];
+		hosts.forEach(function(host){
+		    ping.sys.probe(host, function(isAlive){
+		        var msg = isAlive ? 'host ' + host + ' is alive' : 'host ' + host + ' is dead';
+		        console.log(msg);
+		    });
+		});
+
+	/*session.pingHost (device.ip, function (error, target) {
+	    if (error) {
+	        console.log (target + ": " + error.toString ());
+	    	module.exports.setUnavailable( device, "Offline" );
+	    } else {
+	        console.log (target + ": Alive");
+	    	module.exports.setAvailable( device); // Mark the device as available
+	    }
+	});*/
+
+	callback(availability);
 }
 
 module.exports = self;
