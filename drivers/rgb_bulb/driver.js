@@ -175,8 +175,8 @@ function setState( active_device, onoff, callback ) {
 	devices.forEach(function(device){ //Loop trough all registered devices
 
 		if (active_device.group == device.group) {
-			if (onoff == true) device.bridge.sendCommands(commands.white.on(device.group));
-			if (onoff == false) device.bridge.sendCommands(commands.white.off(device.group));
+			if (onoff == true) device.bridge.sendCommands(commands.rgb.on(device.group));
+			if (onoff == false) device.bridge.sendCommands(commands.rgb.off(device.group));
 
 			device.state = onoff; //Set the new state
 			callback( null, device.state ); //Callback the new state
