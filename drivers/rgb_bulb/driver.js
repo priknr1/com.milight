@@ -1,342 +1,407 @@
 "use strict";
 
-var Milight      	= require('node-milight-promise').MilightController;
-var commands     	= require('node-milight-promise').commands;
+/**
+ * Import MilightController and the commands
+ */
+var commands = require('node-milight-promise').commands;
 
-var util		 	= require('util');
+var foundDevices = [];
+var devices = [];
+var pauseSpeed = 500;
 
-var newFoundDevices = [];
-var devices     	= [];
-var pauseSpeed 		= 500;
-		
-var self = {
-	
-	init: function( devices_homey, callback ){
-		Homey.log("The driver of MiLight RGB bulb started");
+/**
+ * On init of the driver start listening for bridges that
+ * were found and try to connect installed devices
+ * @param devices_homey
+ * @param callback
+ */
+module.exports.init = function (devices_data, callback) {
 
-		//Loop trough all registered devices
-		devices_homey.forEach(function(device_data){ 
+	// Loop trough all registered devices
+	devices_data.forEach(function (device_data) {
 
-			devices.push(device_data) // Push every device to the local devices list
-			module.exports.setUnavailable( device_data, "Offline" );
+		// Add already installed devices to the list
+		devices.push(device_data);
 
-		});
-		
-		//When a new bridge is found
-		Homey.app.foundEmitter.on('newBridgeFound', function(device){
-			console.log("New bridge found:", device);
-		
-			devices_homey.forEach(function(device_data){
-			
-				connectToDevice( device, device_data, function(){} ); //Connect to Device if bridge is matching
-				
+		// Mark be default as offline on reboot
+		module.exports.setUnavailable(device_data, "Offline");
+	});
+
+	// Listen for incoming found bridges
+	Homey.app.bridgeDiscovery.on('bridgeFound', function (bridge) {
+
+		// Loop over all devices
+		devices_data.forEach(function (device_data) {
+
+			// Try to connect to device if matching bridge was found
+			Homey.app.connectToDevice(devices, device_data, function (err, device_data) {
+
+				// Mark the device as available
+				if (!err && device_data) module.exports.setAvailable(device_data);
 			});
-						
-		})
+		});
+	});
 
-		callback();
-	},
-	
-	capabilities: {
-		onoff: {
-			get: function( device, callback ){
-				getState(device, function(err, state) {
-					Homey.log('Get state:', state);
-					module.exports.realtime( device, 'onoff', state );
-					callback( null, state ) //New state
+	// Succesfull start of driver
+	callback(null, true);
+};
+
+/**
+ * Object below constructs the pairing process of the RGB bulb
+ * @param socket Connection to the front-end
+ */
+module.exports.pair = function (socket) {
+
+	// Pairing started
+	socket.on("start", function (data, callback) {
+		Homey.log('MiLight pairing has started');
+		foundDevices = [Homey.app.formatDevice({uuid: "dummy"}, 0, "RGB")]; //Enter dummy data to empty
+	});
+
+	// Listing devices
+	socket.on("list_devices", function (data, callback) {
+		Homey.log("list_devices: ", data);
+
+		// TODO what is it?
+		function listener(device) {
+
+			// Iterate all 4 groups
+			for (var group = 1; group < 5; group++) {
+				var formattedDevice = Homey.app.formatDevice(device, group, "RGB");
+
+				// Check if the devices are already found
+				Homey.app.checkAlreadyFound(formattedDevice, foundDevices, function (found) {
+					if (!found) {
+
+						// Add to found devices
+						foundDevices.push(formattedDevice);
+						socket.emit('list_devices', formattedDevice)
+					}
 				});
-			},
-
-			set: function( device, onoff, callback ){
-				console.log("device set", device);
-				setState(device, onoff, function(err, state) {
-					Homey.log('Set state:', state);
-					module.exports.realtime( device, 'onoff', state );
-					callback( null, state ) //New state
-				});		
-			}
-		},
-		dim: {
-			get: function( device, callback ){
-				getDim(device, function(err, dimLevel) {
-					Homey.log('Get dim:', dimLevel);
-					module.exports.realtime( device, 'dim', dimLevel );
-					callback( null, dimLevel ) //New state
-				});
-			},
-
-			set: function( device, dim, callback ){
-				console.log("arguments", arguments);
-				console.log("device set", device);
-				setDim(device, dim, function(err, dimLevel) {
-					Homey.log('Set dim:', dimLevel);
-					module.exports.realtime( device, 'dim', dimLevel );
-					callback( null, dimLevel ) //New state
-				});		
-			}
-		},
-		light_hue: {
-			get: function( device, callback ){
-				getColor(device, function(err, color) {
-					Homey.log('Get color:', color);
-					module.exports.realtime( device, 'light_hue', color );
-					callback( null, color ) //New state
-				});
-			},
-
-			set: function( device, hue, callback ){
-				console.log("arguments", arguments);
-				console.log("device set", device);
-				setColor(device, hue, function(err, color) {
-					Homey.log('Set color:', color);
-					module.exports.realtime( device, 'light_hue', color );
-					callback( null, color ) //New state
-				});		
 			}
 		}
-	},
-	
-	pair: function( socket ) {
-		socket.on( "start", function( data, callback ){
-			Homey.log('MiLight pairing has started');
-			newFoundDevices = [formatDevice( {uuid: "dummy"}, 0 )]; //Enter dummy data to empty
 
-		}),
-		
-		socket.on( "list_devices", function( data, callback ){
-			Homey.log("list_devices: ", data);
+		Homey.app.bridgeDiscovery.on('bridgeFound', listener);
 
-			function listener(device){
-				for (var group = 1; group < 5; group++) { //Walk to all 4 groups
-					var formatedDevice = formatDevice(device, group);
+		setTimeout(function () {
+			Homey.app.bridgeDiscovery.removeListener('bridgeFound', listener); //Stop listening to the events
+		}, 600000);
+	});
 
-					// Check if the devices are already found
-				  	checkAlreadyFound (formatedDevice, newFoundDevices, function (found) {
-				  		if (!found) {
-				  			newFoundDevices.push(formatedDevice);
-				  			socket.emit('list_devices', formatedDevice)
-				  		}
-				  	})
-				}
+	// Add selected device
+	socket.on("add_device", function (device, callback) {
+		Homey.log("Add device: ", device);
+
+		var deviceObj = false;
+		devices.forEach(function (installed_device) {
+
+			// If already installed
+			if (installed_device.uuid == device.data.id) {
+				deviceObj = installed_device;
 			}
+		});
 
-			Homey.app.foundEmitter.on('bridgeFound', listener);
+		// Add device to internal list
+		devices.push(device.data);
 
-			setTimeout (function() {
-				Homey.app.foundEmitter.removeListener('bridgeFound', listener); //Stop listening to the events
-			}, 600000) //10 min
-		}),
+		// Mark as offline by default
+		module.exports.setUnavailable(device.data, "Offline");
 
-		socket.on( "add_device", function( device, callback ){
-			Homey.log("Add device: ", device);
+		// Conntect to the new Device
+		Homey.app.connectToDevice(devices, device.data, function (err, device_data) {
+			// Mark the device as available
+			if (!err && device_data) module.exports.setAvailable(device_data);
+		});
 
-			var deviceObj = false;
-			devices.forEach(function(device_){
-				if( device_.uuid == device.data.id ) deviceObj = device_;
-			})
-			
-			module.exports.setUnavailable( device.data, "Offline" );
-			
-			// Conntect to the new Device
-			connectToDevice( deviceObj, device.data, function( err, result ){
-				if( err ) return Homey.error(err);
+		// Empty found devices to prevent piling up
+		foundDevices = [];
+
+		// Return success
+		callback(null, true);
+	})
+};
+
+/**
+ * Below the capabilites of the Milight RGB bulb are constructed
+ */
+module.exports.capabilities = {
+
+	onoff: {
+		get: function (device_data, callback) {
+			if (device_data instanceof Error) return callback(device_data);
+
+			// Fetch state of device
+			getState(device_data, function (err, state) {
+				Homey.log('Get state:', state);
+
+				// Return state
+				callback(null, state);
 			});
+		},
 
-			newFoundDevices = [];
+		set: function (device_data, onoff, callback) {
+			if (device_data instanceof Error) return callback(device_data);
 
-			callback( null, true );
-		})
+			// Set state of device
+			setState(device_data, onoff, function (err, state) {
+				Homey.log('Set state:', state);
+
+				// Give realtime update about current state
+				module.exports.realtime(device_data, 'onoff', state);
+
+				// Return state
+				callback(null, state);
+			});
+		}
 	},
 
-	deleted: function ( device_data ) {
-		console.log("Device is removed: ", device_data);
+	dim: {
+		get: function (device_data, callback) {
+			if (device_data instanceof Error) return callback(device_data);
 
-		for( var device_id in devices ) {
-			if (device_id == device_data.id) {
-				delete devices[device_id]; // Remove item from local device list
-			}
+			// Get current dim level
+			getDim(device_data, function (err, dimLevel) {
+				Homey.log('Get dim:', dimLevel);
+
+				// Return dim level
+				callback(null, dimLevel);
+			});
+		},
+
+		set: function (device_data, dim, callback) {
+			if (device_data instanceof Error) return callback(device_data);
+
+			// Set dim level
+			setDim(device_data, dim, function (err, dimLevel) {
+				Homey.log('Set dim:', dimLevel);
+
+				// Give realtime update about current state
+				module.exports.realtime(device_data, 'dim', dimLevel);
+
+				// Return dim level
+				callback(null, dimLevel);
+			});
+		}
+	},
+
+	light_hue: {
+		get: function (device_data, callback) {
+			if (device_data instanceof Error) return callback(device_data);
+
+			// Get current hue
+			getHue(device_data, function (err, color) {
+				Homey.log('Get color:', color);
+
+				// Return hue
+				callback(null, color);
+			});
+		},
+
+		set: function (device_data, hue, callback) {
+			if (device_data instanceof Error) return callback(device_data);
+
+			// Set hue
+			setHue(device_data, hue, function (err, color) {
+				Homey.log('Set color:', color);
+
+				// Give realtime update about current hue
+				module.exports.realtime(device_data, 'light_hue', color);
+
+				// Return color
+				callback(null, color);
+			});
 		}
 	}
-}
+};
 
-// Get the State of a group
-function getState( active_device, callback ) {
-	devices.forEach(function(device){ //Loop trough all registered devices
+/**
+ * Make sure when user removes a device, this
+ * is properly handled internally
+ * @param device_data
+ */
+module.exports.deleted = function (device_data) {
 
+	// Loop all devices
+	for (var device_id in devices) {
+
+		// If device found
+		if (device_id == device_data.id) {
+
+			// Remove it from devices array
+			delete devices[device_id];
+		}
+	}
+};
+
+/**
+ * Fetches the state of a group
+ * @param active_device
+ * @param callback
+ */
+function getState(active_device, callback) {
+
+	// Loop over all devices
+	devices.forEach(function (device) {
+
+		// Matching group found
 		if (active_device.group == device.group) {
-			callback( null, device.state );
+
+			// Return group state
+			callback(null, device.state);
 		}
 	});
 }
 
-// Set the State of a group
-function setState( active_device, onoff, callback ) {
-	console.log("setState: ", onoff);
-	devices.forEach(function(device){ //Loop trough all registered devices
+/**
+ * Set the onoff state of a group
+ * @param active_device
+ * @param onoff
+ * @param callback
+ */
+function setState(active_device, onoff, callback) {
 
+	// Loop over all devices
+	devices.forEach(function (device) {
+
+		// Matching group found
 		if (active_device.group == device.group) {
-			if (onoff == true) device.bridge.sendCommands(commands.rgb.on(device.group));
-			if (onoff == false) device.bridge.sendCommands(commands.rgb.off(device.group));
 
-			device.state = onoff; //Set the new state
-			callback( null, device.state ); //Callback the new state
+			// Check if bridge is available
+			if (device.bridge) {
 
+				// Send proper command to rgb bulb
+				if (onoff == true) {
+					device.bridge.sendCommands(commands.rgb.on(device.group));
+				}
+				else if (onoff == false) {
+					device.bridge.sendCommands(commands.rgb.off(device.group));
+				}
+
+				// Update state of device
+				device.state = onoff;
+
+				// Return success
+				callback(null, device.state);
+			}
+			else {
+				callback(true, false);
+			}
 		}
 	});
 }
 
-// Get the Dim of a group
-function getDim( active_device, callback ) {
-	devices.forEach(function(device){ //Loop trough all registered devices
+/**
+ * Fetches the dim level of a group
+ * @param active_device
+ * @param callback
+ */
+function getDim(active_device, callback) {
 
-		console.log("GetDim");
+	// Loop over all devices
+	devices.forEach(function (device) {
 
+		// Matching group found
 		if (active_device.group == device.group) {
-			console.log("getDim callback", device.dim);
-			callback( null, device.dim );
+
+			// Return dim level
+			callback(null, device.dim);
 		}
 	});
 }
 
-// Set the Dim of a group
-function setDim( active_device, dim, callback ) {
-	console.log("pauseSpeed: ", pauseSpeed);
-	console.log("setDim: ", dim);
-	devices.forEach(function(device){ //Loop trough all registered devices
+/**
+ * Set the dim level of a certain group
+ * @param active_device
+ * @param dim
+ * @param callback
+ */
+function setDim(active_device, dim, callback) {
 
-		//console.log("SetDim device", device);
+	// Loop over all devices
+	devices.forEach(function (device) {
 
+		// Matching group found
 		if (active_device.group == device.group) {
 
-			if (dim < 0.1) { //Totally off
+			// TODO dim level white -> rgb
+			if (dim < 0.1) {
 				device.bridge.sendCommands(commands.white.off(device.group));
-
-			} else if (dim > 0.9) { //Totally on
+			}
+			else if (dim > 0.9) {
 				device.bridge.sendCommands(commands.white.maxBright(device.group));
-				
-			} else {
+			}
+			else {
 				var dim_dif = Math.round((dim - device.dim) * 10);
 				console.log("dim_dif", dim_dif, "last_dim", device.dim, "dim", dim);
 
-				if (dim_dif > 0 ) { //Brighness up
+				if (dim_dif > 0) { //Brighness up
 					for (var x = 0; x < dim_dif; x++) {
 						console.log("Brightness up");
-					    device.bridge.sendCommands(commands.white.on(device.group), commands.white.brightUp());;
-					    device.bridge.pause(pauseSpeed);
+						device.bridge.sendCommands(commands.white.on(device.group), commands.white.brightUp());
+						device.bridge.pause(pauseSpeed);
 					}
-				} else if (dim_dif < 0) { //Brighness down
+				}
+				else if (dim_dif < 0) { //Brighness down
 					for (var x = 0; x < -dim_dif; x++) {
 						console.log("Brightness down");
 						device.bridge.sendCommands(commands.white.on(device.group), commands.white.brightDown())
-					    device.bridge.pause(pauseSpeed);
+						device.bridge.pause(pauseSpeed);
 					}
 				}
 			}
 
 			device.dim = dim; //Set the new dim
 			console.log("setState callback", device.dim);
-			callback( null, device.dim ); //Callback the new dim
-		}
-	});
-}
-
-// Get the Color of a group
-function getColor( active_device, callback ) {
-	devices.forEach(function(device){ //Loop trough all registered devices
-
-		if (active_device.group == device.group) {
-			console.log("getColor callback", device.color);
-			callback( null, device.color );
-		}
-	});
-}
-
-// Set the Color of a group
-function setColor( active_device, color, callback ) {
-	console.log("setcolor: ", color);
-	var milight_color = convertToMilightColor(color);
-
-	devices.forEach(function(device){ //Loop trough all registered devices
-
-		if (active_device.group == device.group) {
-
-			device.bridge.sendCommands(commands.rgb.on(device.group), commands.rgb.hue( milight_color));
-
-			device.color = color; //Set the new color
-			callback( null, device.color ); //Callback the new color
+			callback(null, device.dim); //Callback the new dim
 		}
 	});
 }
 
 /**
- * convertToMilightColor
- * INPUT: hue_color beteen 0 - 1
- * OUTPUT: milight_color between 0 - 255
+ * Fetches the hue level of a group
+ * @param active_device
+ * @param callback
  */
-function convertToMilightColor ( hue_color )  {
-	var milight_color = (256 + 176 - Math.floor(Number(hue_color) * 255.0)) % 256;
-	return milight_color;
-}
+function getHue(active_device, callback) {
 
-// Connect to the device by matching IP and making and give it a bridge object
-function connectToDevice( device, device_data, callback ) {
-	console.log("Connect to device");
+	// Loop over all devices
+	devices.forEach(function (device) {
 
-	callback = callback || function(){}
-				
-	devices.forEach(function(device_){
+		// Matching group found
+		if (active_device.group == device.group) {
 
-		// map uuid to IP
-		if( device_.uuid == device_data.uuid ) {
-			var ip = device_data.ip; // The correct IP
-			device_.bridge = "";
-
-			device_.ip = ip; // Set the new IP in the local devices list
-			module.exports.setAvailable( device_data ); // Mark the device as available
-
-			// Create new Milight obj
-			var bridge = new Milight({
-			    host: ip,
-			    delayBetweenCommands: 50,
-			    broadcast: true
-			});
-
-			device_.bridge = bridge; //Set the new bridge obj for the device
-
-			callback ( null, ip); //return ip
+			// Return current hue
+			callback(null, device.color);
 		}
-
-	})
-	
+	});
 }
 
-function checkAlreadyFound (formatedDevice, newFoundDevices, callback) {
-	var alreadyFound = false;
-	newFoundDevices.forEach(function(device_) {
-		console.log("Checks", formatedDevice[0].data.id, device_[0].data.id);
-		if (formatedDevice[0].data.id == device_[0].data.id) { //Check if the found device is the same as one of the existing ones
-		  	alreadyFound = true;
+/**
+ * Set hue level of a group
+ * @param active_device
+ * @param color
+ * @param callback
+ */
+function setHue(active_device, color, callback) {
+
+	// Map color to value milight can use
+	var milight_color = Homey.app.convertToMilightColor(color);
+
+	// Loop over all devices
+	devices.forEach(function (device) {
+
+		// Matching group found
+		if (active_device.group == device.group) {
+
+			console.log("TOGGLE HUE: " + milight_color);
+			// Turn device on, and set hue
+			device.bridge.sendCommands(commands.rgb.on(device.group), commands.rgb.hue(milight_color));
+
+			// Update hue
+			device.color = color;
+
+			// Return hue
+			callback(null, device.color);
 		}
-  	})
-  	callback (alreadyFound);
+	});
 }
-
-// Used during pairing to format the device in such a way that is possible to use 'list devices'
-function formatDevice( device, group ) {
-	var array = [{
-		name: 'RGB Group ' + group +': Bridge (' + device.uuid + ')',
-		data: {
-			id: "RGB-" + device.uuid + "-" + group,
-			uuid: device.uuid,
-			ip: device.address,
-			group: group,
-            state: true,
-            dim: 1,
-            color: 1
-        }
-	}];
-
-	return array;
-}
-
-module.exports = self;

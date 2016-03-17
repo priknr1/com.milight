@@ -7,35 +7,38 @@ var util		 	= require('util');
 
 var newFoundDevices = [];
 var devices      	= [];
-		
+
 var self = {
-	
+
 	init: function( devices_homey, callback ){
 		Homey.log("The driver of MiLight RGBW bulb started");
 
 		//Loop trough all registered devices
-		devices_homey.forEach(function(device_data){ 
-
+		devices_homey.forEach(function(device_data){
 			devices.push(device_data) // Push every device to the local devices list
 			module.exports.setUnavailable( device_data, "Offline" );
 
 		});
-		
+
 		//When a new bridge is found
-		Homey.app.foundEmitter.on('newBridgeFound', function(device){
-			console.log("New bridge found:", device);
-		
+		Homey.app.bridgeDiscovery.on('bridgeFound', function(){
+
 			devices_homey.forEach(function(device_data){
-			
-				connectToDevice( device, device_data, function(){} ); //Connect to Device if bridge is matching
-				
+
+				Homey.app.connectToDevice( devices, device_data, function(err, device_data){
+
+					// Mark the device as available
+					if(!err && device_data) module.exports.setAvailable(device_data);
+
+				} );
+
 			});
-						
+
 		})
 
 		callback();
 	},
-	
+
 	capabilities: {
 		onoff: {
 			get: function( device, callback ){
@@ -52,7 +55,7 @@ var self = {
 					Homey.log('Set state:', state);
 					module.exports.realtime( device, 'onoff', state );
 					callback( null, state ) //New state
-				});		
+				});
 			}
 		},
 		dim: {
@@ -71,7 +74,7 @@ var self = {
 					Homey.log('Set dim:', dimLevel);
 					module.exports.realtime( device, 'dim', dimLevel );
 					callback( null, dimLevel ) //New state
-				});		
+				});
 			}
 		},
 		light_hue: {
@@ -90,7 +93,7 @@ var self = {
 					Homey.log('Set color:', color);
 					module.exports.realtime( device, 'light_hue', color );
 					callback( null, color ) //New state
-				});		
+				});
 			}
 		},
 		light_temperature: {
@@ -109,27 +112,27 @@ var self = {
 					Homey.log('Set temp:', temp);
 					module.exports.realtime( device, 'temp', temp );
 					callback( null, temp ) //New state
-				});		
+				});
 			}
 		}
 	},
-	
+
 	pair: function( socket ) {
 		socket.on( "start", function( data, callback ){
 			Homey.log('MiLight pairing has started');
-			newFoundDevices = [formatDevice( {uuid: "dummy"}, 0 )]; //Enter dummy data to empty
+			newFoundDevices = [Homey.app.formatDevice( {uuid: "dummy"}, 0 , "RGBW")]; //Enter dummy data to empty
 
 		}),
-		
+
 		socket.on( "list_devices", function( data, callback ){
 			Homey.log("list_devices: ", data);
 
 			function listener(device){
 				for (var group = 1; group < 5; group++) { //Walk to all 4 groups
-					var formatedDevice = formatDevice(device, group);
+					var formatedDevice = Homey.app.formatDevice(device, group, "RGBW");
 
 					// Check if the devices are already found
-				  	checkAlreadyFound (formatedDevice, newFoundDevices, function (found) {
+				  	Homey.app.checkAlreadyFound (formatedDevice, newFoundDevices, function (found) {
 				  		if (!found) {
 				  			newFoundDevices.push(formatedDevice);
 				  			socket.emit('list_devices', formatedDevice)
@@ -138,10 +141,10 @@ var self = {
 				}
 			}
 
-			Homey.app.foundEmitter.on('bridgeFound', listener);
+			Homey.app.bridgeDiscovery.on('bridgeFound', listener);
 
 			setTimeout (function() {
-				Homey.app.foundEmitter.removeListener('bridgeFound', listener); //Stop listening to the events
+				Homey.app.bridgeDiscovery.removeListener('bridgeFound', listener); //Stop listening to the events
 			}, 600000) //10 min
 		}),
 
@@ -151,18 +154,23 @@ var self = {
 			var deviceObj = false;
 			devices.forEach(function(device_){
 				if( device_.uuid == device.data.id ) deviceObj = device_;
-			})
-			
+			});
+
+			// Add device to internal list
+			devices.push(device.data);
+
 			module.exports.setUnavailable( device.data, "Offline" );
-			
-			// Conntect to the new Device
-			connectToDevice( deviceObj, device.data, function( err, result ){
-				if( err ) return Homey.error(err);
+
+			// Connect to the new Device
+			Homey.app.connectToDevice( devices, device.data, function( err, device_data ){
+
+				// Mark the device as available
+				if(!err && device_data) module.exports.setAvailable(device_data);
 			});
 
 			newFoundDevices = [];
 
-			callback( null, true );
+			callback( null, device.data.id );
 		})
 	},
 
@@ -231,9 +239,9 @@ function setDim( active_device, dim, callback ) {
 		if (active_device.group == device.group) {
 
 			device.bridge.sendCommands(commands.rgbw.on(device.group), commands.rgbw.brightness(dim*100));
-			
+
 			device.dim = dim; //Set the new dim
-			callback( null, device.dim ); //Callback the new dim	
+			callback( null, device.dim ); //Callback the new dim
 		}
 	});
 }
@@ -252,7 +260,7 @@ function getColor( active_device, callback ) {
 // Set the Color of a group
 function setColor( active_device, color, callback ) {
 	console.log("setcolor: ", color);
-	var milight_color = convertToMilightColor(color);
+	var milight_color = Homey.app.convertToMilightColor(color);
 
 	devices.forEach(function(device){ //Loop trough all registered devices
 
@@ -291,102 +299,6 @@ function setLightTemperature( active_device, temperature, callback ) {
 			callback( null, device.temperature ); //Callback the new temperature
 		}
 	});
-}
-
-/**
- * convertToMilightColor
- * INPUT: hue_color beteen 0 - 1
- * OUTPUT: milight_color between 0 - 255
- */
-function convertToMilightColor ( hue_color )  {
-	var milight_color = (256 + 176 - Math.floor(Number(hue_color) * 255.0)) % 256;
-	return milight_color;
-}
-
-// Connect to the device by matching IP and making and give it a bridge object
-function connectToDevice( device, device_data, callback ) {
-	console.log("Connect to device");
-
-	callback = callback || function(){}
-				
-	devices.forEach(function(device_){
-
-		// map uuid to IP
-		if( device_.uuid == device_data.uuid ) {
-			var ip = device_data.ip; // The correct IP
-			device_.bridge = "";
-
-			device_.ip = ip; // Set the new IP in the local devices list
-			module.exports.setAvailable( device_data ); // Mark the device as available
-
-			// Create new Milight obj
-			var bridge = new Milight({
-			    host: ip,
-			    delayBetweenCommands: 50,
-			    broadcast: true
-			});
-
-			device_.bridge = bridge; //Set the new bridge obj for the device
-
-			callback ( null, ip); //return ip
-		}
-
-	})
-	
-}
-
-function checkAlreadyFound (formatedDevice, newFoundDevices, callback) {
-	var alreadyFound = false;
-	newFoundDevices.forEach(function(device_) {
-		console.log("Checks", formatedDevice[0].data.id, device_[0].data.id);
-		if (formatedDevice[0].data.id == device_[0].data.id) { //Check if the found device is the same as one of the existing ones
-		  	alreadyFound = true;
-		}
-  	})
-  	callback (alreadyFound);
-}
-
-// Used during pairing to format the device in such a way that is possible to use 'list devices'
-function formatDevice( device, group ) {
-	var array = [{
-		name: 'RGBW Group ' + group +': Bridge (' + device.uuid + ')',
-		data: {
-			id: "RGBW-" + device.uuid + "-" + group,
-			uuid: device.uuid,
-			ip: device.address,
-			group: group,
-            state: true,
-            dim: 1,
-            color: 1,
-            temperature: 1
-        }
-	}];
-
-	return array;
-}
-
-function checkAvailability( device, callback ) {
-	console.log("Availability", device);
-
-		var hosts = ['192.168.1.1', 'google.com', 'yahoo.com'];
-		hosts.forEach(function(host){
-		    ping.sys.probe(host, function(isAlive){
-		        var msg = isAlive ? 'host ' + host + ' is alive' : 'host ' + host + ' is dead';
-		        console.log(msg);
-		    });
-		});
-
-	/*session.pingHost (device.ip, function (error, target) {
-	    if (error) {
-	        console.log (target + ": " + error.toString ());
-	    	module.exports.setUnavailable( device, "Offline" );
-	    } else {
-	        console.log (target + ": Alive");
-	    	module.exports.setAvailable( device); // Mark the device as available
-	    }
-	});*/
-
-	callback(availability);
 }
 
 module.exports = self;

@@ -1,7 +1,7 @@
-### MiLight (easybulb) app for Homey  
-Connect your MiLight (easybulb) lamps with Homey.
+# MiLight (easybulb) app for Homey  
+Connect your MiLight (EasyBulb) light bulbs with Homey.
 
-Homey will connect with your WiFi receiver to control the lights.
+Homey connects with your WiFi bridge to control the lights.
 
 Also compatible with: 
 - Rocket LED
