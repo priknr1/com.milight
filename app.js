@@ -24,8 +24,10 @@ var bridgeDiscovery = new EventEmitter();
  */
 module.exports.init = function () {
 
-	// Start discovering bridges
+	// Create link message
 	var message = new Buffer('Link_Wi-Fi');
+
+	// Create UDP socket
 	var server = require('dgram').createSocket("udp4");
 
 	// Bind the socket
