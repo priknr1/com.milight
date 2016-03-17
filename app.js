@@ -49,7 +49,6 @@ module.exports.init = function () {
 						address.split(":")[0].split(".")[1] + "." +
 						address.split(":")[0].split(".")[2] + ".255";
 
-					console.log("Send broadcast message with ip: ", localAddress);
 					server.send(message, 0, message.length, 48899, localAddress);
 				}
 			});
@@ -74,7 +73,6 @@ module.exports.init = function () {
 		};
 
 		// A bridge was found
-		console.log("A bridge was found: ", device);
 		bridgeDiscovery.emit('bridgeFound', device);
 
 		// Check if bridge was not found already
@@ -108,40 +106,46 @@ module.exports.convertToMilightColor = function (hue) {
  */
 module.exports.connectToDevice = function (devices, device_data, callback) {
 
-	console.log("IN CONNECT DEVICE");
-	console.log(devices.length);
+	// Check if devices are present
+	if (devices.length > 0) {
 
-	// Loop over all devices
-	devices.forEach(function (device_) {
-		console.log(device_);
-		console.log(device_data);
-		// Check matching device
-		if (device_.uuid == device_data.uuid) {
+		// Loop over all devices
+		devices.forEach(function (device_) {
 
-			// Get ip of bridge
-			var ip = device_data.ip;
+			// Check matching device
+			if (device_.uuid == device_data.uuid) {
 
-			// Store new ip
-			device_.ip = ip;
+				// Get ip of bridge
+				var ip = device_data.ip;
 
-			var device_data_obj = {
-				id: device_data.id
-			};
+				// Store new ip
+				device_.ip = ip;
 
-			// Create new Milight obj
-			var bridge = new Milight({
-				host: ip,
-				delayBetweenCommands: 50,
-				broadcast: true
-			});
+				var device_data_obj = {
+					id: device_data.id
+				};
 
-			// Set the new bridge obj for the device
-			device_.bridge = bridge;
+				// Create new Milight obj
+				var bridge = new Milight({
+					host: ip,
+					delayBetweenCommands: 50,
+					broadcast: true
+				});
 
-			// Return ip
-			if (callback && typeof callback == "function") callback(null, device_data_obj);
-		}
-	});
+				// Set the new bridge obj for the device
+				device_.bridge = bridge;
+
+				// Return ip
+				if (callback && typeof callback == "function") callback(null, device_data_obj);
+			}
+			else {
+				callback(true, false);
+			}
+		});
+	}
+	else {
+		callback(true, false);
+	}
 };
 
 /**
@@ -150,11 +154,13 @@ module.exports.connectToDevice = function (devices, device_data, callback) {
  * @param foundDevices
  * @param callback
  */
-module.exports.checkAlreadyFound = function (formatedDevice, foundDevices, callback) {
+module.exports.checkAlreadyFound = function (formattedDevice, foundDevices, callback) {
 	var alreadyFound = false;
-	foundDevices.forEach(function (device_) {
-		if (formatedDevice[0].data.id == device_[0].data.id) alreadyFound = true;
-	});
+	if (foundDevices && formattedDevice) {
+		foundDevices.forEach(function (device_) {
+			if (formattedDevice[0].data.id == device_[0].data.id) alreadyFound = true;
+		});
+	}
 
 	callback(alreadyFound);
 };
@@ -176,7 +182,8 @@ module.exports.formatDevice = function (device, group, type) {
 			group: group,
 			state: true,
 			dim: 1,
-			color: 1
+			color: 1,
+			temperature: 1
 		}
 	}];
 };
