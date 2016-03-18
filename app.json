@@ -4,12 +4,12 @@
   "compatibility": "0.x || 1.x",
   "category": "lights",
   "name": {
-    "en": "MiLight (easybulb)",
-    "nl": "MiLight (easybulb)"
+    "en": "Milight (EasyBulb)",
+    "nl": "Milight (EasyBulb)"
   },
   "description": {
-    "en": "Connect your MiLight (easybulb) lamps with Homey",
-    "nl": "Verbind je MiLight (easybulb) lampen met Homey"
+    "en": "Connect your Milight (EasyBulb) light bulbs with Homey",
+    "nl": "Verbind je Milight (EasyBulb) lampen met Homey"
   },
   "author": {
     "name": "Athom B.V."
@@ -51,8 +51,8 @@
     {
       "id": "rgb_bulb",
       "name": {
-        "en": "RGB Bulb (beta)",
-        "nl": "RGB Lamp (beta)"
+        "en": "RGB Bulb",
+        "nl": "RGB Lamp"
       },
       "images": {
         "large": "./drivers/rgb_bulb/assets/images/large.jpg",

@@ -1,77 +1,191 @@
 "use strict";
 
-var events		 = require('events');
-var dgram 		 = require('dgram');
-var Emitter      = require('events').EventEmitter;
+/**
+ * Import the milight controller
+ */
+var Milight = require('node-milight-promise').MilightController;
+
+/**
+ * Keep track of bridges found
+ * @type {Array}
+ */
 var foundDevices = [];
+var EventEmitter = require('events').EventEmitter;
 
-var self = {
-	init: function () {
-		Homey.log("MiLight app started");
+/**
+ * Create bridgeDiscovery emitter and export it
+ * to let the drivers know when a bridge is found
+ */
+var bridgeDiscovery = new EventEmitter();
 
-		self.foundEmitter = new Emitter();
+/**
+ * Start searching for bridges the moment the
+ * app is started
+ */
+module.exports.init = function () {
 
-		self.discoverBridges();
-	},
+	// Create link message
+	var message = new Buffer('Link_Wi-Fi');
 
-	// Discover available Bridges
-	discoverBridges: function() {
-		var message = new Buffer ('Link_Wi-Fi');
-		var server = dgram.createSocket("udp4");
+	// Create UDP socket
+	var server = require('dgram').createSocket("udp4");
 
-		server.bind( function() {
-		  server.setBroadcast(true)
-		  server.setMulticastTTL(128);
-		  setInterval(broadcastNew, 5000);
-		});
-		
-		// Broadcast a new discover message
-		function broadcastNew() {
-			self.getDiscoverIp ( function(err, discoverIp) {
-				console.log("Send broadcast message with ip: ", discoverIp);
-				server.send(message, 0, message.length, 48899, discoverIp);
-			})
-		} 
+	// Bind the socket
+	server.bind(function () {
 
-		//empty foundDevices once a day
-		function resetFoundDevices() {
-			foundDevices = [];
+		// Enable broadcasting
+		server.setBroadcast(true);
+
+		// Enable multiple router hops
+		server.setMulticastTTL(254);
+
+		// Fetch local address and broadcast every 5 seconds
+		setInterval(function () {
+
+			// Fetch the local address to enable searching locally
+			Homey.manager('cloud').getLocalAddress(function (err, address) {
+				if (!err && address) {
+
+					// Parse address to replace last digits with broadcast (255)
+					var localAddress = address.split(":")[0].split(".")[0] + "." +
+						address.split(":")[0].split(".")[1] + "." +
+						address.split(":")[0].split(".")[2] + ".255";
+
+					server.send(message, 0, message.length, 48899, localAddress);
+				}
+			});
+		}, 5000);
+	});
+
+	// Reset found devices every 24 hours
+	setInterval(function () {
+		foundDevices = [];
+	}, 86400000);
+
+	// Listen incoming messages
+	server.on('message', function (message, remote) {
+
+		// Parse uuid from message
+		var uuid = message.toString("utf-8").split(",")[1];
+
+		// Construct device object
+		var device = {
+			address: remote.address,
+			uuid: uuid
+		};
+
+		// A bridge was found
+		bridgeDiscovery.emit('bridgeFound', device);
+
+		// Check if bridge was not found already
+		if (!foundDevices.indexOf(remote.address) > -1) {
+			foundDevices.push(remote.address);
 		}
-		setInterval(resetFoundDevices, 86400000);
+	});
+};
 
-		// Listen for emission of the "message" event.
-		server.on('message', function (message, remote) {
-		    message = message.toString('utf-8');
-		    message = message.split(",");
-		    var uuid = message[1];
+/**
+ * Export bridgeDiscovery emitter to be used in the drivers
+ * @type {*|EventEmitter}
+ */
+module.exports.bridgeDiscovery = bridgeDiscovery;
 
-		    var device = {
-			    address		: remote.address,
-			    uuid		: uuid
-		    }
-		    
-		    console.log("A bridge was found: ", device);
-			self.foundEmitter.emit('bridgeFound', device); //Emit a bridge is found
+/**
+ * Convert input color to color milight
+ * can use
+ * @param hue_color 0 - 1
+ * @returns {number} 1 - 255
+ */
+module.exports.convertToMilightColor = function (hue) {
+	return (256 + 176 - Math.floor(Number(hue) * 255.0)) % 256;
+};
 
-		    if (foundDevices.indexOf(remote.address) > -1) { // If address is already in the array
-			    //Do nothing
-			} else {
-				foundDevices.push(remote.address);
-			    self.foundEmitter.emit('newBridgeFound', device); //Emit a NEW bridge is found
+/**
+ * Try to connect to a bridge
+ * @param device
+ * @param device_data
+ * @param callback
+ */
+module.exports.connectToDevice = function (devices, device_data, callback) {
+
+	// Check if devices are present
+	if (devices.length > 0) {
+
+		// Loop over all devices
+		devices.forEach(function (device_) {
+
+			// Check matching device
+			if (device_.uuid == device_data.uuid) {
+
+				// Get ip of bridge
+				var ip = device_data.ip;
+
+				// Store new ip
+				device_.ip = ip;
+
+				var device_data_obj = {
+					id: device_data.id
+				};
+
+				// Create new Milight obj
+				var bridge = new Milight({
+					host: ip,
+					delayBetweenCommands: 50,
+					broadcast: true
+				});
+
+				// Set the new bridge obj for the device
+				device_.bridge = bridge;
+
+				// Return ip
+				if (callback && typeof callback == "function") callback(null, device_data_obj);
+			}
+			else {
+				callback(true, false);
 			}
 		});
-	},
-
-	// Get the Discover Ip based on Homeys IP to discover devices
-	getDiscoverIp: function( callback ) {
-		Homey.manager('cloud').getLocalAddress(function( err, address){
-	        var address = address.split(":");
-			address = address[0]; //Remove the port
-			address = address.split(".");
-			address = address[0] + "." + address[1] + "." + address[2] + ".255"; //Get first three int and then .255
-	        callback (null, address); // Returns Homey's IP with .255 at the end (for example: 192.168.1.255)
-	    });
 	}
-}
+	else {
+		callback(true, false);
+	}
+};
 
-module.exports = self;
+/**
+ * Checks if a device was already found
+ * @param formatedDevice
+ * @param foundDevices
+ * @param callback
+ */
+module.exports.checkAlreadyFound = function (formattedDevice, foundDevices, callback) {
+	var alreadyFound = false;
+	if (foundDevices && formattedDevice) {
+		foundDevices.forEach(function (device_) {
+			if (formattedDevice[0].data.id == device_[0].data.id) alreadyFound = true;
+		});
+	}
+
+	callback(alreadyFound);
+};
+
+/**
+ * Formats incoming data to be send to the front-end
+ * in the list devices view
+ * @param device
+ * @param group
+ * @returns {*[]}
+ */
+module.exports.formatDevice = function (device, group, type) {
+	return [{
+		name: type + ' Group ' + group + ': Bridge (' + device.uuid + ')',
+		data: {
+			id: type + "-" + device.uuid + "-" + group,
+			uuid: device.uuid,
+			ip: device.address,
+			group: group,
+			state: true,
+			dim: 1,
+			color: 1,
+			temperature: 1
+		}
+	}];
+};
