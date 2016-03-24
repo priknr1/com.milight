@@ -372,7 +372,7 @@ function setDim(active_device, dim, callback) {
 			// Matching group found
 			if (active_device.group == device.group) {
 
-				if(dim < 0.1) {
+				if(dim < 0.01) {
 
 					// Send off command
 					device.bridge.sendCommands(commands.rgbw.off(device.group));
