@@ -17,18 +17,36 @@ var EventEmitter = require('events').EventEmitter;
  * to let the drivers know when a bridge is found
  */
 var bridgeDiscovery = new EventEmitter();
+var localAddress = null;
+var message = new Buffer('Link_Wi-Fi');
+var server = require('dgram').createSocket("udp4");
+
+/**
+ * Sends a broadcast message to the bridge when
+ * a local address is found
+ */
+bridgeDiscovery.start = function () {
+
+	// If local address already present
+	if (localAddress) {
+
+		// Send broadcast
+		server.send(message, 0, message.length, 48899, localAddress);
+	}
+	else {
+
+		// Wait for localAddress to be found
+		bridgeDiscovery.on("gotLocalAddress", function () {
+			server.send(message, 0, message.length, 48899, localAddress);
+		});
+	}
+};
 
 /**
  * Start searching for bridges the moment the
  * app is started
  */
 module.exports.init = function () {
-
-	// Create link message
-	var message = new Buffer('Link_Wi-Fi');
-
-	// Create UDP socket
-	var server = require('dgram').createSocket("udp4");
 
 	// Bind the socket
 	server.bind(function () {
@@ -39,22 +57,19 @@ module.exports.init = function () {
 		// Enable multiple router hops
 		server.setMulticastTTL(254);
 
-		// Fetch local address and broadcast every 5 seconds
-		setInterval(function () {
+		// Fetch the local address to enable searching locally
+		Homey.manager('cloud').getLocalAddress(function (err, address) {
+			if (!err && address) {
 
-			// Fetch the local address to enable searching locally
-			Homey.manager('cloud').getLocalAddress(function (err, address) {
-				if (!err && address) {
+				// Parse address to replace last digits with broadcast (255)
+				localAddress = address.split(":")[0].split(".")[0] + "." +
+					address.split(":")[0].split(".")[1] + "." +
+					address.split(":")[0].split(".")[2] + ".255";
 
-					// Parse address to replace last digits with broadcast (255)
-					var localAddress = address.split(":")[0].split(".")[0] + "." +
-						address.split(":")[0].split(".")[1] + "." +
-						address.split(":")[0].split(".")[2] + ".255";
-
-					server.send(message, 0, message.length, 48899, localAddress);
-				}
-			});
-		}, 5000);
+				// Address is found, continue to broadcast
+				bridgeDiscovery.emit("gotLocalAddress");
+			}
+		});
 	});
 
 	// Reset found devices every 24 hours

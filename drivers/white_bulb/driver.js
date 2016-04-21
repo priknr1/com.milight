@@ -42,6 +42,9 @@ module.exports.init = function (devices_data, callback) { // we're ready
 		});
 	});
 
+	// Start looking for a bridge
+	Homey.app.bridgeDiscovery.start();
+
 	// Succesful start of driver
 	callback(null, true);
 };
@@ -84,6 +87,9 @@ module.exports.pair = function (socket) {
 		// Listen for found bridges
 		Homey.app.bridgeDiscovery.on('bridgeFound', checkDuplicates);
 
+		// Start looking for a bridge
+		Homey.app.bridgeDiscovery.start();
+		
 		// Remove listener when pairing wizard is done
 		socket.on("disconnect", function () {
 			Homey.app.bridgeDiscovery.removeListener('bridgeFound', checkDuplicates);
