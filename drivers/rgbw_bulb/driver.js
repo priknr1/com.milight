@@ -40,7 +40,7 @@ module.exports.init = function (devices_data, callback) {
 			});
 		});
 	});
-	
+
 	// Start looking for a bridge
 	Homey.app.bridgeDiscovery.start();
 
@@ -54,6 +54,8 @@ module.exports.init = function (devices_data, callback) {
  */
 module.exports.pair = function (socket) {
 
+	var timeout = null;
+
 	// Pairing started
 	socket.on("start", function () {
 		foundDevices = [Homey.app.formatDevice({uuid: "dummy"}, 0, "RGBW")];
@@ -64,6 +66,9 @@ module.exports.pair = function (socket) {
 
 		// Loop all four groups to check if device was already found
 		function checkDuplicates(device) {
+
+			// Clear the timeout, we have response
+			clearTimeout(timeout);
 
 			// Loop all 4 groups
 			for (var group = 1; group < 5; group++) {
@@ -86,11 +91,27 @@ module.exports.pair = function (socket) {
 		// Listen for found bridges
 		Homey.app.bridgeDiscovery.on('bridgeFound', checkDuplicates);
 
-		// Start looking for a bridge
-		Homey.app.bridgeDiscovery.start();
+		// Method that recursively searches for bridge if no respons
+		function startRecursiveDiscovery() {
+			// Start looking for a bridge
+			Homey.app.bridgeDiscovery.start();
+
+			// Create timeout to retry if no response
+			timeout = setTimeout(function () {
+				startRecursiveDiscovery();
+			}, 5000);
+		}
+
+		// Start discovery
+		startRecursiveDiscovery();
 
 		// Remove listener when pairing wizard is done
 		socket.on("disconnect", function () {
+
+			// Clear the timeout
+			clearTimeout(timeout);
+
+			// Remove listener
 			Homey.app.bridgeDiscovery.removeListener('bridgeFound', checkDuplicates);
 		});
 	});
@@ -378,12 +399,13 @@ function setDim(active_device, dim, callback) {
 			// Matching group found
 			if (active_device.group == device.group) {
 
-				if(dim < 0.01) {
+				if (dim < 0.01) {
 
 					// Send off command
 					device.bridge.sendCommands(commands.rgbw.off(device.group));
 
-				} else {
+				}
+				else {
 
 					// Send on and brightness commands
 					device.bridge.sendCommands(commands.rgbw.on(device.group), commands.rgbw.brightness(dim * 100));
