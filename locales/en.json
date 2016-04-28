@@ -1,4 +1,5 @@
 {
+	"no_response": "Bridge does not respond",
 	"pair": {
 		"title": "Select the devices you want to add"
 	}

@@ -42,6 +42,37 @@ module.exports.init = function (devices_data, callback) { // we're ready
 		});
 	});
 
+	// Event when bridge came online
+	Homey.app.bridgeDiscovery.on("bridgeOnline", function (device_data) {
+		var device = getDevice(device_data);
+		if (device) {
+			module.exports.setAvailable({id: device.id});
+		}
+	});
+
+	// Event when bridge did not respond
+	Homey.app.bridgeDiscovery.on("bridgeOffline", function (device_data) {
+
+		function pingDevice(device_data) {
+
+			// Retry ping after 5 min
+			setTimeout(function () {
+				Homey.app.bridgeDiscovery.ping(device_data);
+			}, 1000 * 60 * 5); // after 5 minutes
+		}
+
+		// Find device
+		var device = getDevice(device_data);
+
+		// Only if device is installed start pinging
+		if (device) {
+			pingDevice(device_data);
+		}
+
+		// Mark as unavailable
+		module.exports.setUnavailable(device_data, __("no_response"));
+	});
+
 	// Start looking for a bridge
 	Homey.app.bridgeDiscovery.start();
 
@@ -63,11 +94,11 @@ module.exports.pair = function (socket) {
 	});
 
 	// Listing devices
-	socket.on("list_devices", function () {
+	socket.on("list_devices", function (data, callback) {
 
 		// Loop all four groups to check if device was already found
 		function checkDuplicates(device) {
-			
+
 			// Clear the timeout, we have response
 			clearTimeout(timeout);
 
@@ -92,8 +123,20 @@ module.exports.pair = function (socket) {
 		// Listen for found bridges
 		Homey.app.bridgeDiscovery.on('bridgeFound', checkDuplicates);
 
-		// Method that recursively searches for bridge if no respons
+		// Keep track of tries
+		var numberOfTries = 0;
+
+		// Method that recursively searches for bridge if no response
 		function startRecursiveDiscovery() {
+
+			// If tried three times and no bridge found, abort
+			if (numberOfTries > 3) {
+				return callback(null, []);
+			}
+
+			// Add another try
+			numberOfTries++;
+
 			// Start looking for a bridge
 			Homey.app.bridgeDiscovery.start();
 
@@ -159,6 +202,9 @@ module.exports.capabilities = {
 		get: function (device_data, callback) {
 			if (device_data instanceof Error) return callback(device_data);
 
+			// Ping bridge
+			Homey.app.bridgeDiscovery.ping(device_data);
+
 			// Fetch state of device
 			getState(device_data, function (err, state) {
 
@@ -169,6 +215,9 @@ module.exports.capabilities = {
 
 		set: function (device_data, onoff, callback) {
 			if (device_data instanceof Error) return callback(device_data);
+
+			// Ping bridge
+			Homey.app.bridgeDiscovery.ping(device_data);
 
 			// Set state of device
 			setState(device_data, onoff, function (err) {
@@ -186,6 +235,9 @@ module.exports.capabilities = {
 		get: function (device_data, callback) {
 			if (device_data instanceof Error) return callback(device_data);
 
+			// Ping bridge
+			Homey.app.bridgeDiscovery.ping(device_data);
+
 			// Get current dim level
 			getDim(device_data, function (err, dimLevel) {
 
@@ -196,6 +248,9 @@ module.exports.capabilities = {
 
 		set: function (device_data, dim, callback) {
 			if (device_data instanceof Error) return callback(device_data);
+
+			// Ping bridge
+			Homey.app.bridgeDiscovery.ping(device_data);
 
 			// Set dim level
 			setDim(device_data, dim, function (err) {
@@ -213,6 +268,9 @@ module.exports.capabilities = {
 		get: function (device_data, callback) {
 			if (device_data instanceof Error) return callback(device_data);
 
+			// Ping bridge
+			Homey.app.bridgeDiscovery.ping(device_data);
+
 			// Get current temperature
 			getLightTemperature(device_data, function (err, temp) {
 
@@ -223,6 +281,9 @@ module.exports.capabilities = {
 
 		set: function (device_data, temperature, callback) {
 			if (device_data instanceof Error) return callback(device_data);
+
+			// Ping bridge
+			Homey.app.bridgeDiscovery.ping(device_data);
 
 			// Set temperature
 			setLightTemperature(device_data, temperature, function (err) {
@@ -245,13 +306,16 @@ module.exports.capabilities = {
 module.exports.deleted = function (device_data) {
 
 	// Loop all devices
-	for (var device_id in devices) {
+	for (var x in devices) {
 
 		// If device found
-		if (device_id == device_data.id) {
+		if (devices[x].id == device_data.id) {
 
 			// Remove it from devices array
-			delete devices[device_id];
+			var index = devices.indexOf(devices[x]);
+			if (index > -1) {
+				devices.splice(index, 1);
+			}
 		}
 	}
 };
@@ -502,5 +566,18 @@ function setLightTemperature(active_device, temperature, callback) {
 	}
 	else {
 		callback(true, false);
+	}
+}
+
+/**
+ * Get device from internal device array
+ * @param device_data
+ * @returns {*}
+ */
+function getDevice(device_data) {
+	for (var x = 0; x < devices.length; x++) {
+		if (devices[x].uuid == device_data.id || devices[x].uuid == device_data.uuid) {
+			return devices[x];
+		}
 	}
 }

@@ -43,6 +43,60 @@ bridgeDiscovery.start = function () {
 };
 
 /**
+ * Sends a message to a specific bridge to see
+ * if it is still alive
+ * @param device_data
+ */
+bridgeDiscovery.ping = function (device_data) {
+
+	// Create socket and message
+	var client = require('dgram').createSocket("udp4");
+	var message = new Buffer('Link_Wi-Fi');
+
+	// Response listener
+	client.on('message', function (message, device) {
+
+		// Got response stop recursive discovery
+		clearTimeout(timeout);
+
+		// Emit device found
+		bridgeDiscovery.emit("bridgeOnline", {id: message.toString("utf-8").split(",")[1]});
+	});
+
+	// Create timeout
+	var timeout = null;
+
+	// Send message to client
+	client.send(message, 0, message.length, 48899, device_data.ip);
+
+	// Keep track of tries
+	var numberOfTries = 0;
+
+	// Method that recursively searches for bridge if no response
+	function startRecursiveDiscovery() {
+
+		// If tried two times and no bridge found, abort
+		if (numberOfTries > 2) {
+			return bridgeDiscovery.emit("bridgeOffline", device_data);
+		}
+
+		// Add another try
+		numberOfTries++;
+
+		// Start looking for a bridge
+		client.send(message, 0, message.length, 48899, device_data.ip);
+
+		// Create timeout to retry if no response
+		timeout = setTimeout(function () {
+			startRecursiveDiscovery();
+		}, 5000);
+	}
+
+	// Start discovery
+	startRecursiveDiscovery();
+};
+
+/**
  * Start searching for bridges the moment the
  * app is started
  */
