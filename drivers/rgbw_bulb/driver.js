@@ -57,7 +57,7 @@ module.exports.init = function (devices_data, callback) {
 			// Retry ping after 5 min
 			setTimeout(function () {
 				Homey.app.bridgeDiscovery.ping(device_data);
-			}, 1000 * 60 * 5); // after 5 minutes
+			}, 1000 * 45); // after 45 sec
 		}
 
 		// Find device
