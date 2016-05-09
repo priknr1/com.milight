@@ -4,6 +4,8 @@
  * Import the milight controller
  */
 var Milight = require('node-milight-promise').MilightController;
+var commands = require('node-milight-promise').commands;
+var pauseSpeed = 500;
 
 /**
  * Keep track of bridges found
@@ -165,9 +167,9 @@ module.exports.bridgeDiscovery = bridgeDiscovery;
  * @param hue_color 0 - 1
  * @returns {number} 1 - 255
  */
-module.exports.convertToMilightColor = function (hue) {
+function convertToMilightColor(hue) {
 	return (256 + 176 - Math.floor(Number(hue) * 255.0)) % 256;
-};
+}
 
 /**
  * Try to connect to a bridge
@@ -248,6 +250,7 @@ module.exports.formatDevice = function (device, group, type) {
 		name: type + ' Group ' + group + ': Bridge (' + device.uuid + ')',
 		data: {
 			id: type + "-" + device.uuid + "-" + group,
+			type: type,
 			uuid: device.uuid,
 			ip: device.address,
 			group: group,
@@ -257,4 +260,413 @@ module.exports.formatDevice = function (device, group, type) {
 			temperature: 1
 		}
 	}];
+};
+
+/**
+ * Return the command library specific
+ * to the provided bulb type
+ * @param type
+ * @returns {commands.type}
+ */
+function getCommands(type) {
+	switch (type) {
+		case "RGBW":
+			return commands.rgbw;
+			break;
+		case "RGB":
+			return commands.rgb;
+			break;
+		case "White":
+			return commands.white;
+			break;
+	}
+}
+
+/**
+ * Fetches the state of a group
+ * @param active_device
+ * @param callback
+ */
+module.exports.getState = function (devices, active_device, callback) {
+
+	// Check if devices present
+	if (devices.length > 0) {
+
+		var success = false;
+
+		// Loop over all devices
+		devices.forEach(function (device) {
+
+			// Matching bridge group
+			if (active_device.id == device.id) {
+
+				// Return current hue
+				if (!success) callback(null, (device.state == 1));
+
+				// Mark success
+				success = true;
+			}
+		});
+
+		// If failure callback
+		if (!success) callback(true, false);
+	}
+	else {
+		callback(true, false);
+	}
+};
+
+/**
+ * Set the onoff state of a group
+ * @param active_device
+ * @param onoff
+ * @param callback
+ */
+module.exports.setState = function (devices, active_device, onoff, callback) {
+
+	// Check if devices present
+	if (devices.length > 0) {
+
+		var success = false;
+
+		// Loop over all devices
+		devices.forEach(function (device) {
+
+			// Matching group found
+			if (active_device.group == device.group) {
+
+				// Check if bridge is available
+				if (device.bridge) {
+
+					// Send proper command to rgb bulb
+					if (onoff == true) {
+						device.bridge.sendCommands(getCommands(active_device.type).on(device.group));
+					}
+					else if (onoff == false) {
+						device.bridge.sendCommands(getCommands(active_device.type).off(device.group));
+					}
+
+					// Update state of device
+					device.state = onoff;
+
+					// Return success
+					if (!success) callback(null, device.state);
+
+					success = true;
+				}
+			}
+		});
+
+		// Return failure
+		if (!success) callback(true, false);
+	}
+	else {
+		callback(true, false);
+	}
+};
+
+/**
+ * Fetches the dim level of a group
+ * @param active_device
+ * @param callback
+ */
+module.exports.getDim = function (devices, active_device, callback) {
+
+	// Check if devices present
+	if (devices.length > 0) {
+
+		var success = false;
+
+		// Loop over all devices
+		devices.forEach(function (device) {
+
+			// Matching group found
+			if (active_device.group == device.group) {
+
+				// Return current hue
+				if (!success) callback(null, device.dim);
+
+				// Mark success
+				success = true;
+			}
+		});
+
+		// If failure callback
+		if (!success) callback(true, false);
+	}
+	else {
+		callback(true, false);
+	}
+};
+
+/**
+ * Set the dim level of a group
+ * @param active_device
+ * @param dim
+ * @param callback
+ */
+module.exports.setDim = function (devices, active_device, dim, callback) {
+
+	var success = false;
+
+	// Check if devices present
+	if (devices.length > 0) {
+
+		// Loop over all devices
+		devices.forEach(function (device) {
+
+			// Matching group found
+			if (active_device.group == device.group) {
+
+				if (dim < 0.01) {
+
+					// Send off command
+					device.bridge.sendCommands(getCommands(active_device.type).off(device.group));
+
+				}
+				else if (active_device.type == "RGB") {
+					var dim_dif = Math.round((dim - device.dim) * 10);
+
+					if (dim_dif > 0) {
+						for (var x = 0; x < dim_dif; x++) {
+							device.bridge.sendCommands(getCommands(active_device.type).on(device.group), getCommands(active_device.type).brightUp());
+							device.bridge.pause(pauseSpeed);
+						}
+					}
+					else if (dim_dif < 0) {
+						for (var x = 0; x < -dim_dif; x++) {
+							device.bridge.sendCommands(getCommands(active_device.type).on(device.group), getCommands(active_device.type).brightDown());
+							device.bridge.pause(pauseSpeed);
+						}
+					}
+				}
+				else if (active_device.type == "White") {
+					if (dim < 0.01) {
+
+						// Below 0.1 turn light off
+						device.bridge.sendCommands(getCommands(active_device.type).off(device.group));
+					}
+					else if (dim > 0.95) {
+
+						// Turn light to bax brightness
+						device.bridge.sendCommands(getCommands(active_device.type).maxBright(device.group));
+					}
+					else {
+
+						// Calculate dim difference
+						var dim_dif = Math.round((dim - device.dim) * 10);
+
+						if (dim_dif > 0) {
+							for (var x = 0; x < dim_dif; x++) {
+
+								// Send commands to turn up the brightness
+								device.bridge.sendCommands(getCommands(active_device.type).on(device.group), getCommands(active_device.type).brightUp());
+								device.bridge.pause(pauseSpeed);
+							}
+						}
+						else if (dim_dif < 0) {
+							for (var x = 0; x < -dim_dif; x++) {
+
+								// Send commands to turn down the brightness
+								device.bridge.sendCommands(getCommands(active_device.type).on(device.group), getCommands(active_device.type).brightDown());
+								device.bridge.pause(pauseSpeed);
+							}
+						}
+					}
+				}
+				else {
+
+					// Send on and brightness commands
+					device.bridge.sendCommands(getCommands(active_device.type).on(device.group), getCommands(active_device.type).brightness(dim * 100));
+				}
+
+				// Return dim level
+				if (!success) callback(null, device.dim);
+
+				success = true;
+
+				// Save the new dim level
+				device.dim = dim;
+			}
+		});
+
+		if (!success) callback(true, false);
+	}
+	else {
+		callback(true, false);
+	}
+};
+
+/**
+ * Fetches the hue level of a group
+ * @param active_device
+ * @param callback
+ */
+module.exports.getHue = function (devices, active_device, callback) {
+
+	// Check if devices present
+	if (devices.length > 0) {
+
+		var success = false;
+
+		// Loop over all devices
+		devices.forEach(function (device) {
+
+			// Matching group found
+			if (active_device.group == device.group) {
+
+				// Return current hue
+				if (!success) callback(null, device.color);
+
+				// Mark success
+				success = true;
+			}
+		});
+
+		// If failure callback
+		if (!success) callback(true, false);
+	}
+	else {
+		callback(true, false);
+	}
+};
+
+/**
+ * Set hue level of a group
+ * @param active_device
+ * @param color
+ * @param callback
+ */
+module.exports.setHue = function (devices, active_device, color, callback) {
+
+	var success = false;
+
+	// Map color to value milight can use
+	var milight_color = convertToMilightColor(color);
+
+	// Check if devices present
+	if (devices.length > 0) {
+
+		// Loop over all devices
+		devices.forEach(function (device) {
+
+			// Matching group found
+			if (active_device.group == device.group) {
+
+				// Turn device on, and set hue
+				device.bridge.sendCommands(getCommands(active_device.type).on(device.group), getCommands(active_device.type).hue(milight_color));
+
+				// Update hue
+				device.color = color;
+
+				// Return hue
+				if (!success) callback(null, device.color);
+
+				success = true;
+			}
+		});
+
+		if (!success) callback(true, false);
+	}
+	else {
+		callback(true, false);
+	}
+};
+
+/**
+ * Get the current temperature level of a group
+ * @param active_device
+ * @param callback
+ */
+module.exports.getLightTemperature = function (devices, active_device, callback) {
+
+	// Check if devices present
+	if (devices.length > 0) {
+
+		var success = false;
+
+		// Loop over all devices
+		devices.forEach(function (device) {
+
+			// Matching group found
+			if (active_device.group == device.group) {
+
+				// Return current hue
+				if (!success) callback(null, device.temperature);
+
+				// Mark success
+				success = true;
+			}
+		});
+
+		// If failure callback
+		if (!success) callback(true, false);
+	}
+	else {
+		callback(true, false);
+	}
+};
+
+/**
+ * Set the group temperature of a group
+ * @param active_device
+ * @param temperature
+ * @param callback
+ */
+module.exports.setLightTemperature = function (devices, active_device, temperature, callback) {
+
+	var success = false;
+
+	// Check if devices present
+	if (devices.length > 0) {
+
+		// Loop over all devices
+		devices.forEach(function (device) {
+
+			// Matching group found
+			if (active_device.group == device.group) {
+
+				// Check for type of bulb
+				if (active_device.type == "White") {
+
+					// Calculate temperature difference
+					var temp_dif = Math.round((temperature - device.temperature) * 10);
+					if (temp_dif > 0) {
+						for (var x = 0; x < temp_dif; x++) {
+
+							// Send commands to turn light warmer
+							device.bridge.sendCommands(getCommands(active_device.type).on(device.group), getCommands(active_device.type).warmer());
+							device.bridge.pause(pauseSpeed);
+						}
+					}
+					else if (temp_dif < 0) { //Cooler down
+						for (var x = 0; x < -temp_dif; x++) {
+
+							// Send commands to turn light cooler
+							device.bridge.sendCommands(getCommands(active_device.type).on(device.group), getCommands(active_device.type).cooler());
+							device.bridge.pause(pauseSpeed);
+						}
+					}
+				}
+				else {
+
+					// Send commands to group
+					device.bridge.sendCommands(getCommands(active_device.type).on(device.group), getCommands(active_device.type).whiteMode(device.group), commands.rgbw.brightness(temperature * 100));
+				}
+
+				// Store updated temperature
+				device.temperature = temperature;
+
+				// Return temperature
+				if (!success) callback(null, device.temperature);
+
+				success = true;
+			}
+		});
+
+		if (!success) callback(true, false);
+	}
+	else {
+		callback(true, false);
+	}
 };

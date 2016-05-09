@@ -1,13 +1,7 @@
 "use strict";
 
-/**
- * Import MilightController and the commands
- */
-var commands = require('node-milight-promise').commands;
-
 var foundDevices = [];
 var devices = [];
-var pauseSpeed = 500;
 
 /**
  * On init of the driver start listening for bridges that
@@ -206,7 +200,7 @@ module.exports.capabilities = {
 			Homey.app.bridgeDiscovery.ping(device_data);
 
 			// Fetch state of device
-			getState(device_data, function (err, state) {
+			Homey.app.getState(devices, device_data, function (err, state) {
 
 				// Return state
 				callback(err, state);
@@ -220,13 +214,13 @@ module.exports.capabilities = {
 			Homey.app.bridgeDiscovery.ping(device_data);
 
 			// Set state of device
-			setState(device_data, onoff, function (err, state) {
+			Homey.app.setState(devices, device_data, onoff, function (err, state) {
 
 				// Give realtime update about current state
-				module.exports.realtime(device_data, 'onoff', onoff);
+				module.exports.realtime(device_data, 'onoff', state);
 
 				// Return state
-				callback(err, onoff);
+				callback(err, state);
 			});
 		}
 	},
@@ -239,7 +233,7 @@ module.exports.capabilities = {
 			Homey.app.bridgeDiscovery.ping(device_data);
 
 			// Get current dim level
-			getDim(device_data, function (err, dimLevel) {
+			Homey.app.getDim(devices, device_data, function (err, dimLevel) {
 
 				// Return dim level
 				callback(err, dimLevel);
@@ -253,7 +247,7 @@ module.exports.capabilities = {
 			Homey.app.bridgeDiscovery.ping(device_data);
 
 			// Set dim level
-			setDim(device_data, dim, function (err) {
+			Homey.app.setDim(devices, device_data, dim, function (err) {
 
 				// Give realtime update about current state
 				module.exports.realtime(device_data, 'dim', dim);
@@ -272,7 +266,7 @@ module.exports.capabilities = {
 			Homey.app.bridgeDiscovery.ping(device_data);
 
 			// Get current hue
-			getHue(device_data, function (err, color) {
+			Homey.app.getHue(devices, device_data, function (err, color) {
 
 				// Return hue
 				callback(err, color);
@@ -286,7 +280,7 @@ module.exports.capabilities = {
 			Homey.app.bridgeDiscovery.ping(device_data);
 
 			// Set hue
-			setHue(device_data, hue, function (err) {
+			Homey.app.setHue(devices, device_data, hue, function (err) {
 
 				// Give realtime update about current hue
 				module.exports.realtime(device_data, 'light_hue', hue);
@@ -319,228 +313,6 @@ module.exports.deleted = function (device_data) {
 		}
 	}
 };
-
-/**
- * Fetches the state of a group
- * @param active_device
- * @param callback
- */
-function getState(active_device, callback) {
-
-	// Loop over all devices
-	devices.forEach(function (device) {
-
-		// Matching group found
-		if (active_device.group == device.group) {
-
-			// Return group state
-			callback(null, device.state);
-		}
-		else {
-			callback(true, false);
-		}
-	});
-}
-
-/**
- * Set the onoff state of a group
- * @param active_device
- * @param onoff
- * @param callback
- */
-function setState(active_device, onoff, callback) {
-
-	// Check if devices present
-	if (devices.length > 0) {
-
-		// Loop over all devices
-		devices.forEach(function (device) {
-
-			// Matching group found
-			if (active_device.group == device.group) {
-
-				// Check if bridge is available
-				if (device.bridge) {
-
-					// Send proper command to rgb bulb
-					if (onoff == true) {
-						device.bridge.sendCommands(commands.rgb.on(device.group));
-					}
-					else if (onoff == false) {
-						device.bridge.sendCommands(commands.rgb.off(device.group));
-					}
-
-					// Update state of device
-					device.state = onoff;
-
-					// Return success
-					callback(null, device.state);
-				}
-				else {
-					callback(true, false);
-				}
-			}
-			else {
-				callback(true, false);
-			}
-		});
-	}
-	else {
-		callback(true, false);
-	}
-}
-
-/**
- * Fetches the dim level of a group
- * @param active_device
- * @param callback
- */
-function getDim(active_device, callback) {
-
-	// Check if devices present
-	if (devices.length > 0) {
-
-		// Loop over all devices
-		devices.forEach(function (device) {
-
-			// Matching group found
-			if (active_device.group == device.group) {
-
-				// Return dim level
-				callback(null, device.dim);
-			}
-			else {
-				callback(true, false);
-			}
-		});
-
-	}
-	else {
-		callback(true, false);
-	}
-}
-
-/**
- * Set the dim level of a certain group
- * @param active_device
- * @param dim
- * @param callback
- */
-function setDim(active_device, dim, callback) {
-
-	// Check if devices present
-	if (devices.length > 0) {
-
-		// Loop over all devices
-		devices.forEach(function (device) {
-
-			// Matching group found
-			if (active_device.group == device.group) {
-
-				// If dim lower than 0.1, turn it off
-				if (dim < 0.1) {
-					device.bridge.sendCommands(commands.rgb.off(device.group));
-				}
-				else {
-					var dim_dif = Math.round((dim - device.dim) * 10);
-
-					if (dim_dif > 0) {
-						for (var x = 0; x < dim_dif; x++) {
-							device.bridge.sendCommands(commands.rgb.on(device.group), commands.rgb.brightUp());
-							device.bridge.pause(pauseSpeed);
-						}
-					}
-					else if (dim_dif < 0) {
-						for (var x = 0; x < -dim_dif; x++) {
-							device.bridge.sendCommands(commands.rgb.on(device.group), commands.rgb.brightDown());
-							device.bridge.pause(pauseSpeed);
-						}
-					}
-				}
-
-				// Save updated dim level
-				device.dim = dim;
-
-				// Return device dim level
-				callback(null, device.dim);
-			}
-			else {
-				callback(true, false);
-			}
-		});
-	}
-	else {
-		callback(true, false);
-	}
-}
-
-/**
- * Fetches the hue level of a group
- * @param active_device
- * @param callback
- */
-function getHue(active_device, callback) {
-
-	// Check if devices present
-	if (devices.length > 0) {
-
-		// Loop over all devices
-		devices.forEach(function (device) {
-
-			// Matching group found
-			if (active_device.group == device.group) {
-
-				// Return current hue
-				callback(null, device.color);
-			}
-			else {
-				callback(true, false);
-			}
-		});
-	}
-	else {
-		callback(true, false);
-	}
-}
-
-/**
- * Set hue level of a group
- * @param active_device
- * @param color
- * @param callback
- */
-function setHue(active_device, color, callback) {
-
-	// Map color to value milight can use
-	var milight_color = Homey.app.convertToMilightColor(color);
-
-	// Check if devices present
-	if (devices.length > 0) {
-
-		// Loop over all devices
-		devices.forEach(function (device) {
-
-			// Matching group found
-			if (active_device.group == device.group) {
-
-				// Turn device on, and set hue
-				device.bridge.sendCommands(commands.rgb.on(device.group), commands.rgb.hue(milight_color));
-
-				// Update hue
-				device.color = color;
-
-				// Return hue
-				callback(null, device.color);
-			}
-			else {
-				callback(true, false);
-			}
-		});
-	}
-	else {
-		callback(true, false);
-	}
-}
 
 /**
  * Get device from internal device array
