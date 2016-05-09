@@ -648,6 +648,11 @@ module.exports.setLightTemperature = function (devices, active_device, temperatu
 						}
 					}
 				}
+				else if (active_device.type == "RGBW") {
+
+					// Send commands to group
+					device.bridge.sendCommands(getCommands(active_device.type).on(device.group), getCommands(active_device.type).whiteMode(device.group));
+				}
 				else {
 
 					// Send commands to group

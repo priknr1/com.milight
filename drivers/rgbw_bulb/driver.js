@@ -282,6 +282,9 @@ module.exports.capabilities = {
 			// Set hue
 			Homey.app.setHue(devices, device_data, hue, function (err) {
 
+				// Change temp to indicate hue has been changed
+				getDevice(device_data).temp = 0;
+
 				// Give realtime update about current hue
 				module.exports.realtime(device_data, 'light_hue', hue);
 
@@ -298,12 +301,8 @@ module.exports.capabilities = {
 			// Ping bridge
 			Homey.app.bridgeDiscovery.ping(device_data);
 
-			// Get current temperature
-			Homey.app.getLightTemperature(devices, device_data, function (err, temp) {
-
-				// Return temperature
-				callback(err, temp);
-			});
+			// Return temperature
+			callback(null, (getDevice(device_data).temp == 0.5) ? 0.5 : 0);
 		},
 
 		set: function (device_data, temperature, callback) {
@@ -312,14 +311,18 @@ module.exports.capabilities = {
 			// Ping bridge
 			Homey.app.bridgeDiscovery.ping(device_data);
 
+			// Store updated temp
+			var device = getDevice(device_data);
+			device.temp = 0.5;
+
+			// Update temp to 0.5 to indicate white mode
+			module.exports.realtime(device_data, 'light_temperature', 0.5);
+
 			// Set temperature
 			Homey.app.setLightTemperature(devices, device_data, temperature, function (err) {
 
-				// Give realtime update about current temperature
-				module.exports.realtime(device_data, 'temp', temperature);
-
 				// Return temperature
-				callback(err, temperature);
+				callback(err, 0.5);
 			});
 		}
 	}
