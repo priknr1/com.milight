@@ -14,9 +14,6 @@ module.exports.init = function (devices_data, callback) {
 	// Loop trough all registered devices
 	devices_data.forEach(function (device_data) {
 
-		// Make sure new devices have type set
-		if (!device_data.type) device_data.type = "White";
-
 		// Add already installed devices to the list
 		devices.push(device_data);
 
@@ -201,7 +198,10 @@ module.exports.capabilities = {
 
 			// Ping bridge
 			Homey.app.bridgeDiscovery.ping(device_data);
-
+			
+			// Make sure new devices have type set
+			if (!device_data.type) device_data.type = "White";
+			
 			// Fetch state of device
 			Homey.app.getState(devices, device_data, function (err, state) {
 
@@ -215,6 +215,9 @@ module.exports.capabilities = {
 
 			// Ping bridge
 			Homey.app.bridgeDiscovery.ping(device_data);
+
+			// Make sure new devices have type set
+			if (!device_data.type) device_data.type = "White";
 
 			// Set state of device
 			Homey.app.setState(devices, device_data, onoff, function (err) {
@@ -235,6 +238,9 @@ module.exports.capabilities = {
 			// Ping bridge
 			Homey.app.bridgeDiscovery.ping(device_data);
 
+			// Make sure new devices have type set
+			if (!device_data.type) device_data.type = "White";
+
 			// Get current dim level
 			Homey.app.getDim(devices, device_data, function (err, dimLevel) {
 
@@ -248,6 +254,9 @@ module.exports.capabilities = {
 
 			// Ping bridge
 			Homey.app.bridgeDiscovery.ping(device_data);
+
+			// Make sure new devices have type set
+			if (!device_data.type) device_data.type = "White";
 
 			// Set dim level
 			Homey.app.setDim(devices, device_data, dim, function (err) {
@@ -268,6 +277,9 @@ module.exports.capabilities = {
 			// Ping bridge
 			Homey.app.bridgeDiscovery.ping(device_data);
 
+			// Make sure new devices have type set
+			if (!device_data.type) device_data.type = "White";
+
 			// Get current temperature
 			Homey.app.getLightTemperature(devices, device_data, function (err, temp) {
 
@@ -281,6 +293,9 @@ module.exports.capabilities = {
 
 			// Ping bridge
 			Homey.app.bridgeDiscovery.ping(device_data);
+
+			// Make sure new devices have type set
+			if (!device_data.type) device_data.type = "White";
 
 			// Set temperature
 			Homey.app.setLightTemperature(devices, device_data, temperature, function (err) {

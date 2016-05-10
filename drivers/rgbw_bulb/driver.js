@@ -13,9 +13,6 @@ module.exports.init = function (devices_data, callback) {
 
 	// Loop trough all registered devices
 	devices_data.forEach(function (device_data) {
-
-		// Make sure new devices have type set
-		if (!device_data.type) device_data.type = "RGBW";
 		
 		// Add already installed devices to the list
 		devices.push(device_data);
@@ -202,6 +199,9 @@ module.exports.capabilities = {
 			// Ping bridge
 			Homey.app.bridgeDiscovery.ping(device_data);
 
+			// Make sure new devices have type set
+			if (!device_data.type) device_data.type = "RGBW";
+
 			// Fetch state of device
 			Homey.app.getState(devices, device_data, function (err, state) {
 
@@ -215,6 +215,9 @@ module.exports.capabilities = {
 
 			// Ping bridge
 			Homey.app.bridgeDiscovery.ping(device_data);
+
+			// Make sure new devices have type set
+			if (!device_data.type) device_data.type = "RGBW";
 
 			// Set state of device
 			Homey.app.setState(devices, device_data, onoff, function (err, state) {
@@ -235,6 +238,9 @@ module.exports.capabilities = {
 			// Ping bridge
 			Homey.app.bridgeDiscovery.ping(device_data);
 
+			// Make sure new devices have type set
+			if (!device_data.type) device_data.type = "RGBW";
+
 			// Get current dim level
 			Homey.app.getDim(devices, device_data, function (err, dimLevel) {
 
@@ -248,6 +254,9 @@ module.exports.capabilities = {
 
 			// Ping bridge
 			Homey.app.bridgeDiscovery.ping(device_data);
+
+			// Make sure new devices have type set
+			if (!device_data.type) device_data.type = "RGBW";
 
 			// Set dim level
 			Homey.app.setDim(devices, device_data, dim, function (err) {
@@ -268,6 +277,9 @@ module.exports.capabilities = {
 			// Ping bridge
 			Homey.app.bridgeDiscovery.ping(device_data);
 
+			// Make sure new devices have type set
+			if (!device_data.type) device_data.type = "RGBW";
+
 			// Get current hue
 			Homey.app.getHue(devices, device_data, function (err, color) {
 
@@ -281,6 +293,9 @@ module.exports.capabilities = {
 
 			// Ping bridge
 			Homey.app.bridgeDiscovery.ping(device_data);
+
+			// Make sure new devices have type set
+			if (!device_data.type) device_data.type = "RGBW";
 
 			// Set hue
 			Homey.app.setHue(devices, device_data, hue, function (err) {
@@ -320,6 +335,9 @@ module.exports.capabilities = {
 
 			// Update temp to 0.5 to indicate white mode
 			module.exports.realtime(device_data, 'light_temperature', 0.5);
+
+			// Make sure new devices have type set
+			if (!device_data.type) device_data.type = "RGBW";
 
 			// Set temperature
 			Homey.app.setLightTemperature(devices, device_data, temperature, function (err) {
