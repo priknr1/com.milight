@@ -14,6 +14,9 @@ module.exports.init = function (devices_data, callback) {
 	// Loop trough all registered devices
 	devices_data.forEach(function (device_data) {
 
+		// Make sure new devices have type set
+		if (!device_data.type) device_data.type = "RGBW";
+		
 		// Add already installed devices to the list
 		devices.push(device_data);
 

@@ -9,10 +9,13 @@ var devices = [];
  * @param devices_homey
  * @param callback
  */
-module.exports.init = function (devices_data, callback) { // we're ready
+module.exports.init = function (devices_data, callback) {
 
 	// Loop trough all registered devices
 	devices_data.forEach(function (device_data) {
+
+		// Make sure new devices have type set
+		if (!device_data.type) device_data.type = "White";
 
 		// Add already installed devices to the list
 		devices.push(device_data);
