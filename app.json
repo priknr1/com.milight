@@ -1,6 +1,6 @@
 {
   "id": "com.milight",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "compatibility": "0.x || 1.x",
   "category": "lights",
   "name": {
@@ -175,6 +175,20 @@
         "title": {
           "en": "Enable white mode",
           "nl": "Activeer wit modus"
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=rgbw_bulb"
+          }
+        ]
+      },
+      {
+        "id": "disco_mode",
+        "title": {
+          "en": "Enable random disco mode",
+          "nl": "Zet willekeurige disco modus aan"
         },
         "args": [
           {

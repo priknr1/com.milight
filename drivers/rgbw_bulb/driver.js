@@ -25,6 +25,19 @@ module.exports.init = function (devices_data, callback) {
 		}
 	});
 
+	// Incoming flow action, disco mode
+	Homey.manager('flow').on('action.disco_mode', function (callback, args) {
+
+		// Double check given args
+		if (args.device) {
+
+			// Trigger disco mode on device
+			activateDiscoMode(devices, args.device, function (err, result) {
+				callback(err, result);
+			});
+		}
+	});
+
 	// Loop trough all registered devices
 	devices_data.forEach(function (device_data) {
 
@@ -409,6 +422,47 @@ var activateWhiteMode = function (devices, active_device, callback) {
 
 					// Send proper command to rgb bulb
 					device.bridge.sendCommands(commands.rgbw.whiteMode(device.group));
+
+					// Return success
+					if (!success) callback(null, device.state);
+
+					success = true;
+				}
+			}
+		});
+
+		// Return failure
+		if (!success) callback(true, false);
+	}
+	else {
+		callback(true, false);
+	}
+};
+
+/**
+ * Activate disco mode of RGBW bulb
+ * @param active_device
+ * @param onoff
+ * @param callback
+ */
+var activateDiscoMode = function (devices, active_device, callback) {
+
+	// Check if devices present
+	if (devices.length > 0) {
+
+		var success = false;
+
+		// Loop over all devices
+		devices.forEach(function (device) {
+
+			// Matching group found
+			if (active_device.group == device.group) {
+
+				// Check if bridge is available
+				if (device.bridge) {
+
+					// Send proper command to rgb bulb
+					device.bridge.sendCommands(commands.rgbw.on(device.group), commands.rgbw.discoMode());
 
 					// Return success
 					if (!success) callback(null, device.state);

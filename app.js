@@ -422,12 +422,23 @@ module.exports.setDim = function (devices, active_device, dim, callback) {
 
 					// Send off command
 					device.bridge.sendCommands(getCommands(active_device.type).off(device.group));
-
 				}
 				else if (active_device.type == "RGB") {
 					var dim_dif = Math.round((dim - device.dim) * 10);
 
-					if (dim_dif > 0) {
+					// If dim should be max
+					if(dim > 0.95) {
+
+						// Set brightness to max by sending brightUp multiple times
+						device.bridge.sendCommands(
+							getCommands(active_device.type).on(device.group),
+							getCommands(active_device.type).brightUp(),
+							getCommands(active_device.type).brightUp(),
+							getCommands(active_device.type).brightUp(),
+							getCommands(active_device.type).brightUp()
+						);
+
+					} else if (dim_dif > 0) {
 						for (var x = 0; x < dim_dif; x++) {
 							device.bridge.sendCommands(getCommands(active_device.type).on(device.group), getCommands(active_device.type).brightUp());
 							device.bridge.pause(pauseSpeed);
