@@ -1,5 +1,6 @@
 "use strict";
 var commands = require('node-milight-promise').commands;
+var color = require('onecolor');
 
 var foundDevices = [];
 var devices = [];
@@ -35,6 +36,52 @@ module.exports.init = function (devices_data, callback) {
 			activateDiscoMode(devices, args.device, function (err, result) {
 				callback(err, result);
 			});
+		}
+	});
+
+	// Incoming flow action, set color
+	Homey.manager('flow').on('action.set_color_rgbw', function (callback, args) {
+
+		// Double check given args
+		if (args.device_data && args.color) {
+
+			// Construct color object
+			var myColor = color(args.color);
+
+			// Convert hex to hue
+			args.color = myColor.hue();
+
+			// Ping bridge
+			Homey.app.bridgeDiscovery.ping(args.device_data);
+
+			// Make sure new devices have type set
+			if (!args.device_data) args.device_data.type = "RGBW";
+
+			// Start timeout
+			var timeout = setTimeout(function () {
+				callback(true, false);
+			}, 3000);
+
+			// Set hue
+			Homey.app.setHue(devices, args.device_data, args.color, function (err) {
+
+				// Change temp to indicate hue has been changed
+				getDevice(args.device_data).temp = 0;
+
+				// Give realtime update about current hue
+				module.exports.realtime(args.device_data, 'light_hue', args.color);
+
+				// Clear timeout
+				clearTimeout(timeout);
+
+				// Return color
+				callback(err, args.color);
+			});
+		}
+		else {
+
+			// Callback error
+			callback(true, false);
 		}
 	});
 

@@ -1,4 +1,5 @@
 "use strict";
+var color = require('onecolor');
 
 var foundDevices = [];
 var devices = [];
@@ -10,6 +11,49 @@ var devices = [];
  * @param callback
  */
 module.exports.init = function (devices_data, callback) {
+
+	// Incoming flow action, disco mode
+	Homey.manager('flow').on('action.set_color_rgb', function (callback, args) {
+
+		// Double check given args
+		if (args.device_data && args.color) {
+
+			// Construct color object
+			var myColor = color(args.color);
+
+			// Convert hex to hue
+			args.color = myColor.hue();
+
+			// Ping bridge
+			Homey.app.bridgeDiscovery.ping(args.device_data);
+
+			// Make sure new devices have type set
+			if (!args.device_data) args.device_data.type = "RGB";
+
+			// Start timeout
+			var timeout = setTimeout(function () {
+				callback(true, false);
+			}, 3000);
+
+			// Set hue
+			Homey.app.setHue(devices, args.device_data, args.color, function (err) {
+
+				// Give realtime update about current hue
+				module.exports.realtime(args.device_data, 'light_hue', args.color);
+
+				// Clear timeout
+				clearTimeout(timeout);
+
+				// Return color
+				callback(err, args.color);
+			});
+		}
+		else {
+
+			// Callback error
+			callback(true, false);
+		}
+	});
 
 	// Loop trough all registered devices
 	devices_data.forEach(function (device_data) {

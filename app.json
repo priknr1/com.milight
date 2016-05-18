@@ -197,6 +197,44 @@
             "filter": "driver_id=rgbw_bulb"
           }
         ]
+      },
+      {
+        "id": "set_color_rgbw",
+        "title": {
+          "en": "Set a color",
+          "nl": "Stel een kleur in"
+        },
+        "args": [
+          {
+            "name": "device_data",
+            "type": "device",
+            "filter": "driver_id=rgbw_bulb"
+          },
+          {
+            "name": "color",
+            "type": "color",
+            "filter": "driver_id=rgbw_bulb"
+          }
+        ]
+      },
+      {
+        "id": "set_color_rgb",
+        "title": {
+          "en": "Set a color",
+          "nl": "Stel een kleur in"
+        },
+        "args": [
+          {
+            "name": "device_data",
+            "type": "device",
+            "filter": "driver_id=rgb_bulb"
+          },
+          {
+            "name": "color",
+            "type": "color",
+            "filter": "driver_id=rgb_bulb"
+          }
+        ]
       }
     ]
   },
