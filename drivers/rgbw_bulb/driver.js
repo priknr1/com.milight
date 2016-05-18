@@ -1,4 +1,5 @@
 "use strict";
+var commands = require('node-milight-promise').commands;
 
 var foundDevices = [];
 var devices = [];
@@ -11,9 +12,22 @@ var devices = [];
  */
 module.exports.init = function (devices_data, callback) {
 
+	// Incoming flow action, white mode
+	Homey.manager('flow').on('action.white_mode', function (callback, args) {
+
+		// Double check given args
+		if (args.device) {
+
+			// Trigger white mode on device
+			activateWhiteMode(devices, args.device, function (err, result) {
+				callback(err, result);
+			});
+		}
+	});
+
 	// Loop trough all registered devices
 	devices_data.forEach(function (device_data) {
-		
+
 		// Add already installed devices to the list
 		devices.push(device_data);
 
@@ -368,6 +382,47 @@ module.exports.deleted = function (device_data) {
 				devices.splice(index, 1);
 			}
 		}
+	}
+};
+
+/**
+ * Activate white mode of RGBW bulb
+ * @param active_device
+ * @param onoff
+ * @param callback
+ */
+var activateWhiteMode = function (devices, active_device, callback) {
+
+	// Check if devices present
+	if (devices.length > 0) {
+
+		var success = false;
+
+		// Loop over all devices
+		devices.forEach(function (device) {
+
+			// Matching group found
+			if (active_device.group == device.group) {
+
+				// Check if bridge is available
+				if (device.bridge) {
+
+					// Send proper command to rgb bulb
+					device.bridge.sendCommands(commands.rgbw.whiteMode(device.group));
+
+					// Return success
+					if (!success) callback(null, device.state);
+
+					success = true;
+				}
+			}
+		});
+
+		// Return failure
+		if (!success) callback(true, false);
+	}
+	else {
+		callback(true, false);
 	}
 };
 
