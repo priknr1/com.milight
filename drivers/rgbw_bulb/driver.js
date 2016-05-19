@@ -375,7 +375,9 @@ module.exports.capabilities = {
 			Homey.app.setHue(devices, device_data, hue, function (err) {
 
 				// Change temp to indicate hue has been changed
-				getDevice(device_data).temp = 0;
+				var device = getDevice(device_data);
+				device.temp = 0;
+				device.hue = hue;
 
 				// Give realtime update about current hue
 				module.exports.realtime(device_data, 'light_hue', hue);
@@ -419,6 +421,73 @@ module.exports.capabilities = {
 				// Return temperature
 				callback(err, 0.5);
 			});
+		}
+	},
+
+	light_mode: {
+		get: function (device_data, callback) {
+			if (device_data instanceof Error) return callback(device_data);
+
+			// Ping bridge
+			Homey.app.bridgeDiscovery.ping(device_data);
+
+			// Make sure new devices have type set
+			if (!device_data.type) device_data.type = "RGBW";
+
+			// Get value from device
+			var device = getDevice(device_data);
+			if (device) {
+				if (!device.light_mode) device.light_mode = "color";
+				callback(null, device.light_mode);
+			} else {
+				callback(true, false);
+			}
+		},
+		set: function (device_data, light_mode, callback) {
+			if (device_data instanceof Error) return callback(device_data);
+
+			// Ping bridge
+			Homey.app.bridgeDiscovery.ping(device_data);
+
+			// Make sure new devices have type set
+			if (!device_data.type) device_data.type = "RGBW";
+
+			// Get value from device
+			var device = getDevice(device_data);
+			if (device) {
+
+				// Store updated light mode
+				device.light_mode = light_mode;
+
+				if (light_mode == "temperature") {
+
+					// Emit realtime event
+					module.exports.realtime(device_data, 'light_mode', light_mode);
+
+					// Activate white mode
+					activateWhiteMode(devices, device_data, function (err) {
+						callback(err, device.light_mode);
+					})
+				}
+				else if (light_mode == "color") {
+
+					// Set hue
+					Homey.app.setHue(devices, device_data, device.hue, function (err) {
+
+						// Change temp to indicate hue has been changed
+						getDevice(device_data).temp = 0;
+
+						// Give realtime update about current hue
+						module.exports.realtime(device_data, 'light_hue', device.hue);
+
+						// Give realtime update about current hue
+						module.exports.realtime(device_data, 'light_mode', light_mode);
+
+						// Return color
+						callback(err, device.light_mode);
+					});
+				}
+			}
 		}
 	}
 };
