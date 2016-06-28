@@ -1,6 +1,6 @@
 {
   "id": "com.milight",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "compatibility": ">=0.8.33",
   "category": "lights",
   "name": {
@@ -181,7 +181,7 @@
           {
             "name": "device",
             "type": "device",
-            "filter": "driver_id=rgbw_bulb"
+            "filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
           }
         ]
       },
@@ -195,7 +195,7 @@
           {
             "name": "device",
             "type": "device",
-            "filter": "driver_id=rgbw_bulb"
+            "filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
           }
         ]
       },
@@ -209,12 +209,12 @@
           {
             "name": "device_data",
             "type": "device",
-            "filter": "driver_id=rgbw_bulb"
+            "filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
           },
           {
             "name": "color",
             "type": "color",
-            "filter": "driver_id=rgbw_bulb"
+            "filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
           }
         ]
       },
@@ -228,12 +228,12 @@
           {
             "name": "device_data",
             "type": "device",
-            "filter": "driver_id=rgb_bulb"
+            "filter": "driver_uri=homey:app:com.milight&driver_id=rgb_bulb"
           },
           {
             "name": "color",
             "type": "color",
-            "filter": "driver_id=rgb_bulb"
+            "filter": "driver_uri=homey:app:com.milight&driver_id=rgb_bulb"
           }
         ]
       }
