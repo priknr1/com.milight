@@ -1,245 +1,197 @@
 {
-  "id": "com.milight",
-  "version": "3.0.1",
-  "compatibility": ">=0.8.33",
-  "category": "lights",
-  "name": {
-    "en": "Milight (EasyBulb)",
-    "nl": "Milight (EasyBulb)"
-  },
-  "description": {
-    "en": "Connect your Milight (EasyBulb) light bulbs with Homey",
-    "nl": "Verbind je Milight (EasyBulb) lampen met Homey"
-  },
-  "author": {
-    "name": "Athom B.V."
-  },
-  "images": {
-    "large": "./assets/images/large.jpg",
-    "small": "./assets/images/small.jpg"
-  },
-  "drivers": [
-    {
-      "id": "rgbw_bulb",
-      "name": {
-        "en": "RGBW Bulb",
-        "nl": "RGBW Lamp"
-      },
-      "images": {
-        "large": "./drivers/rgb_bulb/assets/images/large.jpg",
-        "small": "./drivers/rgb_bulb/assets/images/small.jpg"
-      },
-      "class": "light",
-      "capabilities": [
-        "onoff",
-        "dim",
-        "light_hue",
-        "light_temperature",
-        "light_mode"
-      ],
-      "pair": [
-        {
-          "id": "start"
-        },
-        {
-          "id": "list_devices",
-          "template": "list_devices",
-          "navigation": {
-            "next": "add_devices"
-          }
-        },
-        {
-          "id": "add_devices",
-          "template": "add_devices"
-        }
-      ]
-    },
-    {
-      "id": "rgb_bulb",
-      "name": {
-        "en": "RGB Bulb",
-        "nl": "RGB Lamp"
-      },
-      "images": {
-        "large": "./drivers/rgb_bulb/assets/images/large.jpg",
-        "small": "./drivers/rgb_bulb/assets/images/small.jpg"
-      },
-      "class": "light",
-      "capabilities": [
-        "onoff",
-        "dim",
-        "light_hue"
-      ],
-      "pair": [
-        {
-          "id": "start"
-        },
-        {
-          "id": "list_devices",
-          "template": "list_devices",
-          "navigation": {
-            "next": "add_devices"
-          }
-        },
-        {
-          "id": "add_devices",
-          "template": "add_devices"
-        }
-      ],
-      "settings": [
-        {
-          "type": "group",
-          "label": {
-            "en": "General settings",
-            "nl": "Algemene instellingen"
-          },
-          "children": [
-            {
-              "id": "fade_speed",
-              "type": "number",
-              "label": {
-                "en": "Fade speed (0 - 6)",
-                "nl": "Snelheid van vervagen (0 - 6)"
-              },
-              "value": 1,
-              "attr": {
-                "min": 0,
-                "max": 6
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "white_bulb",
-      "name": {
-        "en": "White Bulb",
-        "nl": "Witte Lamp"
-      },
-      "images": {
-        "large": "./drivers/white_bulb/assets/images/large.jpg",
-        "small": "./drivers/white_bulb/assets/images/small.jpg"
-      },
-      "class": "light",
-      "capabilities": [
-        "onoff",
-        "dim",
-        "light_temperature"
-      ],
-      "pair": [
-        {
-          "id": "start"
-        },
-        {
-          "id": "list_devices",
-          "template": "list_devices",
-          "navigation": {
-            "next": "add_devices"
-          }
-        },
-        {
-          "id": "add_devices",
-          "template": "add_devices"
-        }
-      ],
-      "settings": [
-        {
-          "type": "group",
-          "label": {
-            "en": "General settings",
-            "nl": "Algemene instellingen"
-          },
-          "children": [
-            {
-              "id": "fade_speed",
-              "type": "number",
-              "label": {
-                "en": "Fade speed (0 - 6)",
-                "nl": "Snelheid van vervagen (0 - 6)"
-              },
-              "value": 1,
-              "attr": {
-                "min": 0,
-                "max": 6
-              }
-            }
-          ]
-        }
-      ]
-    }
-  ],
-  "flow": {
-    "actions": [
-      {
-        "id": "white_mode",
-        "title": {
-          "en": "Enable white mode",
-          "nl": "Activeer wit modus"
-        },
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
-          }
-        ]
-      },
-      {
-        "id": "disco_mode",
-        "title": {
-          "en": "Enable random disco mode",
-          "nl": "Zet willekeurige disco modus aan"
-        },
-        "args": [
-          {
-            "name": "device",
-            "type": "device",
-            "filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
-          }
-        ]
-      },
-      {
-        "id": "set_color_rgbw",
-        "title": {
-          "en": "Set a color",
-          "nl": "Stel een kleur in"
-        },
-        "args": [
-          {
-            "name": "device_data",
-            "type": "device",
-            "filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
-          },
-          {
-            "name": "color",
-            "type": "color",
-            "filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
-          }
-        ]
-      },
-      {
-        "id": "set_color_rgb",
-        "title": {
-          "en": "Set a color",
-          "nl": "Stel een kleur in"
-        },
-        "args": [
-          {
-            "name": "device_data",
-            "type": "device",
-            "filter": "driver_uri=homey:app:com.milight&driver_id=rgb_bulb"
-          },
-          {
-            "name": "color",
-            "type": "color",
-            "filter": "driver_uri=homey:app:com.milight&driver_id=rgb_bulb"
-          }
-        ]
-      }
-    ]
-  },
-  "dependencies": {
-    "node-milight-promise": "0.0.4"
-  }
+	"id": "com.milight",
+	"version": "3.0.2",
+	"compatibility": ">=0.8.33",
+	"category": "lights",
+	"name": {
+		"en": "Milight (EasyBulb)",
+		"nl": "Milight (EasyBulb)"
+	},
+	"description": {
+		"en": "Connect your Milight (EasyBulb) light bulbs with Homey",
+		"nl": "Verbind je Milight (EasyBulb) lampen met Homey"
+	},
+	"author": {
+		"name": "Athom B.V."
+	},
+	"images": {
+		"large": "./assets/images/large.jpg",
+		"small": "./assets/images/small.jpg"
+	},
+	"drivers": [
+		{
+			"id": "rgbw_bulb",
+			"name": {
+				"en": "RGBW Bulb",
+				"nl": "RGBW Lamp"
+			},
+			"images": {
+				"large": "./drivers/rgb_bulb/assets/images/large.jpg",
+				"small": "./drivers/rgb_bulb/assets/images/small.jpg"
+			},
+			"class": "light",
+			"capabilities": [
+				"onoff",
+				"dim",
+				"light_hue",
+				"light_temperature",
+				"light_mode"
+			],
+			"pair": [
+				{
+					"id": "start"
+				},
+				{
+					"id": "list_devices",
+					"template": "list_devices",
+					"navigation": {
+						"next": "add_devices"
+					}
+				},
+				{
+					"id": "add_devices",
+					"template": "add_devices"
+				}
+			]
+		},
+		{
+			"id": "rgb_bulb",
+			"name": {
+				"en": "RGB Bulb",
+				"nl": "RGB Lamp"
+			},
+			"images": {
+				"large": "./drivers/rgb_bulb/assets/images/large.jpg",
+				"small": "./drivers/rgb_bulb/assets/images/small.jpg"
+			},
+			"class": "light",
+			"capabilities": [
+				"onoff",
+				"dim",
+				"light_hue"
+			],
+			"pair": [
+				{
+					"id": "start"
+				},
+				{
+					"id": "list_devices",
+					"template": "list_devices",
+					"navigation": {
+						"next": "add_devices"
+					}
+				},
+				{
+					"id": "add_devices",
+					"template": "add_devices"
+				}
+			]
+		},
+		{
+			"id": "white_bulb",
+			"name": {
+				"en": "White Bulb",
+				"nl": "Witte Lamp"
+			},
+			"images": {
+				"large": "./drivers/white_bulb/assets/images/large.jpg",
+				"small": "./drivers/white_bulb/assets/images/small.jpg"
+			},
+			"class": "light",
+			"capabilities": [
+				"onoff",
+				"dim",
+				"light_temperature"
+			],
+			"pair": [
+				{
+					"id": "start"
+				},
+				{
+					"id": "list_devices",
+					"template": "list_devices",
+					"navigation": {
+						"next": "add_devices"
+					}
+				},
+				{
+					"id": "add_devices",
+					"template": "add_devices"
+				}
+			]
+		}
+	],
+	"flow": {
+		"actions": [
+			{
+				"id": "white_mode",
+				"title": {
+					"en": "Enable white mode",
+					"nl": "Activeer wit modus"
+				},
+				"args": [
+					{
+						"name": "device",
+						"type": "device",
+						"filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
+					}
+				]
+			},
+			{
+				"id": "disco_mode",
+				"title": {
+					"en": "Enable random disco mode",
+					"nl": "Zet willekeurige disco modus aan"
+				},
+				"args": [
+					{
+						"name": "device",
+						"type": "device",
+						"filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
+					}
+				]
+			},
+			{
+				"id": "set_color_rgbw",
+				"title": {
+					"en": "Set a color",
+					"nl": "Stel een kleur in"
+				},
+				"args": [
+					{
+						"name": "device_data",
+						"type": "device",
+						"filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
+					},
+					{
+						"name": "color",
+						"type": "color",
+						"filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
+					}
+				]
+			},
+			{
+				"id": "set_color_rgb",
+				"title": {
+					"en": "Set a color",
+					"nl": "Stel een kleur in"
+				},
+				"args": [
+					{
+						"name": "device_data",
+						"type": "device",
+						"filter": "driver_uri=homey:app:com.milight&driver_id=rgb_bulb"
+					},
+					{
+						"name": "color",
+						"type": "color",
+						"filter": "driver_uri=homey:app:com.milight&driver_id=rgb_bulb"
+					}
+				]
+			}
+		]
+	},
+	"dependencies": {
+		"node-milight-promise": "0.0.4"
+	}
 }
