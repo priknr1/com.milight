@@ -1,0 +1,41 @@
+0 info it worked if it ends with ok
+1 verbose cli [ '/usr/local/bin/node',
+1 verbose cli   '/usr/local/bin/npm',
+1 verbose cli   'install',
+1 verbose cli   './Users/Robin/Development/athom/node-homey-wifidriver' ]
+2 info using npm@2.15.1
+3 info using node@v4.4.4
+4 verbose install initial load of /Users/Robin/Development/athom/apps/com.milight/package.json
+5 verbose installManyTop reading scoped package data from /Users/Robin/Development/athom/apps/com.milight/node_modules/homey-log/package.json
+6 verbose installManyTop reading scoped package data from /Users/Robin/Development/athom/apps/com.milight/node_modules/node-milight/package.json
+7 verbose installManyTop reading scoped package data from /Users/Robin/Development/athom/apps/com.milight/node_modules/onecolor/package.json
+8 verbose installManyTop reading scoped package data from /Users/Robin/Development/athom/apps/com.milight/node_modules/tcp-ping/package.json
+9 info package.json node-milight@1.0.0 No repository field.
+10 info package.json node-milight@1.0.0 No README data
+11 verbose readDependencies loading dependencies from /Users/Robin/Development/athom/apps/com.milight/package.json
+12 silly cache add args [ './Users/Robin/Development/athom/node-homey-wifidriver',
+12 silly cache add   null ]
+13 verbose cache add spec ./Users/Robin/Development/athom/node-homey-wifidriver
+14 silly cache add parsed spec Result {
+14 silly cache add   raw: './Users/Robin/Development/athom/node-homey-wifidriver',
+14 silly cache add   scope: null,
+14 silly cache add   name: null,
+14 silly cache add   rawSpec: './Users/Robin/Development/athom/node-homey-wifidriver',
+14 silly cache add   spec: '/Users/Robin/Development/athom/apps/com.milight/Users/Robin/Development/athom/node-homey-wifidriver',
+14 silly cache add   type: 'local' }
+15 error addLocal Could not install /Users/Robin/Development/athom/apps/com.milight/Users/Robin/Development/athom/node-homey-wifidriver
+16 verbose stack Error: ENOENT: no such file or directory, open '/Users/Robin/Development/athom/apps/com.milight/Users/Robin/Development/athom/node-homey-wifidriver'
+16 verbose stack     at Error (native)
+17 verbose cwd /Users/Robin/Development/athom/apps/com.milight
+18 error Darwin 16.3.0
+19 error argv "/usr/local/bin/node" "/usr/local/bin/npm" "install" "./Users/Robin/Development/athom/node-homey-wifidriver"
+20 error node v4.4.4
+21 error npm  v2.15.1
+22 error path /Users/Robin/Development/athom/apps/com.milight/Users/Robin/Development/athom/node-homey-wifidriver
+23 error code ENOENT
+24 error errno -2
+25 error syscall open
+26 error enoent ENOENT: no such file or directory, open '/Users/Robin/Development/athom/apps/com.milight/Users/Robin/Development/athom/node-homey-wifidriver'
+26 error enoent This is most likely not a problem with npm itself
+26 error enoent and is related to npm not being able to find a file.
+27 verbose exit [ -2, true ]
