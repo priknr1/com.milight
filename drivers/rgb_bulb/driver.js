@@ -80,11 +80,11 @@ module.exports = new WifiDriver(path.basename(__dirname), {
 
 // Incoming flow action, set color
 Homey.manager('flow').on('action.set_color_rgb', (callback, args) => {
-	if (!args.hasOwnProperty('device_data') || !args.hasOwnProperty('color')) return callback(new Error('invalid_parameters'));
+	if (!args.hasOwnProperty('deviceData') || !args.hasOwnProperty('color')) return callback(new Error('invalid_parameters'));
 
 	// Construct color object
 	const myColor = color(args.color);
 	args.color = myColor.hue();
 
-	module.exports.capabilities.light_hue.set(args.device_data, args.color, (err, result) => callback(null, true));
+	module.exports.capabilities.light_hue.set(args.deviceData, args.color, (err, result) => callback(null, true));
 });
