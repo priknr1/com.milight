@@ -131,7 +131,7 @@
 				},
 				"args": [
 					{
-						"name": "device",
+						"name": "deviceData",
 						"type": "device",
 						"filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
 					}
@@ -145,7 +145,7 @@
 				},
 				"args": [
 					{
-						"name": "device",
+						"name": "deviceData",
 						"type": "device",
 						"filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
 					}
@@ -159,7 +159,7 @@
 				},
 				"args": [
 					{
-						"name": "device_data",
+						"name": "deviceData",
 						"type": "device",
 						"filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
 					},
@@ -178,7 +178,7 @@
 				},
 				"args": [
 					{
-						"name": "device_data",
+						"name": "deviceData",
 						"type": "device",
 						"filter": "driver_uri=homey:app:com.milight&driver_id=rgb_bulb"
 					},
@@ -190,8 +190,5 @@
 				]
 			}
 		]
-	},
-	"dependencies": {
-		"node-milight-promise": "0.0.4"
 	}
 }
