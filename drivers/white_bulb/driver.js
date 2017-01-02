@@ -7,7 +7,6 @@ const path = require('path');
 const DRIVER_TYPE = "WHITE";
 
 module.exports = new WifiDriver(path.basename(__dirname), {
-	debug: true,
 	initDevice: (device, callback) => {
 
 		// Look for online bridges
