@@ -1,0 +1,26 @@
+{
+  "name": "com.milight",
+  "version": "1.0.0",
+  "description": "Connect your MiLight (EasyBulb) light bulbs with Homey.",
+  "main": "app.js",
+  "dependencies": {
+    "homey-log": "~1.0.1",
+    "homey-wifidriver": "file:../../node-homey-wifidriver",
+    "onecolor": "~3.0.4",
+    "tcp-ping": "~0.1.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/athombv/com.milight.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/athombv/com.milight/issues"
+  },
+  "homepage": "https://github.com/athombv/com.milight#readme"
+}
