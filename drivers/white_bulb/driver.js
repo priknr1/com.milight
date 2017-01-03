@@ -1,7 +1,7 @@
 'use strict';
 
-const Milight = require('node-milight');
-const WifiDriver = require('node-homey-wifidriver');
+const Milight = require('./../../lib/node-milight');
+const WifiDriver = require('homey-wifidriver');
 const path = require('path');
 
 const DRIVER_TYPE = "WHITE";
@@ -20,7 +20,7 @@ module.exports = new WifiDriver(path.basename(__dirname), {
 			if (bridge && zone) {
 
 				// Set available and unavailable when bridge is down
-				bridge.once("offline", () => module.exports.deviceWentOffline(device));
+				bridge.once("offline", () => device.markAsUnavailable());
 
 				// Store additional properties
 				device.name = zone.name;
