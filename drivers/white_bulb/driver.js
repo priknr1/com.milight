@@ -1,12 +1,12 @@
 'use strict';
 
-const Milight = require('./../../lib/node-milight');
-const WifiDriver = require('homey-wifidriver');
+const Milight = require('./../../lib/milight');
+const DeviceDriver = require('homey-devicedriver');
 const path = require('path');
 
 const DRIVER_TYPE = "WHITE";
 
-module.exports = new WifiDriver(path.basename(__dirname), {
+module.exports = new DeviceDriver(path.basename(__dirname), {
 	initDevice: (device, callback) => {
 
 		// Look for online bridges
