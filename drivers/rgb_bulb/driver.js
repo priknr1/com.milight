@@ -39,19 +39,22 @@ module.exports = new WifiDriver(path.basename(__dirname), {
 			set: (device, onoff, callback) => {
 				onoff ? device.zone.turnOn() : device.zone.turnOff();
 				return callback(null, onoff);
-			}
+			},
+			persistOverReboot: true,
 		},
 		dim: {
 			set: (device, dim, callback) => {
 				device.zone.setBrightness(dim);
 				return callback(null, dim);
-			}
+			},
+			persistOverReboot: true,
 		},
 		light_hue: {
 			set: (device, hue, callback) => {
 				device.zone.setHue(hue);
 				return callback(null, hue);
-			}
+			},
+			persistOverReboot: true,
 		}
 	},
 	pair: socket => {
