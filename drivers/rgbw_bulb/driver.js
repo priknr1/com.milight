@@ -51,7 +51,7 @@ module.exports = new DeviceDriver(path.basename(__dirname), {
 		},
 		light_hue: {
 			set: (device, hue, callback) => {
-				if (device.settings['invert_red_and_green'] === true) {
+				if (device.settings['invert_red_and_green'].get() === true) {
 					const red = onecolor(`hsl(${hue * 360}, 1, 1)`).red();
 					const green = onecolor(`hsl(${hue * 360}, 1, 1)`).green();
 					const blue = onecolor(`hsl(${hue * 360}, 1, 1)`).blue();
