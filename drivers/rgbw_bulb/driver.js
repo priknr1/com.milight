@@ -75,7 +75,7 @@ module.exports = new DeviceDriver(path.basename(__dirname), {
 					device.zone.enableWhiteMode();
 					return callback(null, mode);
 				} else if (mode === 'color') {
-					module.exports.capabilities.light_hue.set(device.data, device.zone.hue, (err, result) => callback(err, result));
+					module.exports.capabilities.light_hue.set(device.data, device.capabilities['light_hue'].get(), (err, result) => callback(err, mode));
 				} else if (mode === 'disco') {
 					module.exports.capabilities.light_mode.set(device.data, 'color', (err, result) => {
 						device.zone.toggleScene();
@@ -125,7 +125,7 @@ Homey.manager('flow').on('action.disco_mode', function (callback, args) {
 // Incoming flow action, set color
 Homey.manager('flow').on('action.set_color_rgbw', (callback, args) => {
 	if (!args.hasOwnProperty('deviceData') || !args.hasOwnProperty('color')) return callback(new Error('invalid_parameters'));
-	const myColor = color(args.color);
+	const myColor = onecolor(args.color);
 	args.color = myColor.hue();
 	module.exports.capabilities.light_hue.set(args.deviceData, args.color, (err, result) => callback(null, true));
 });
