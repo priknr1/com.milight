@@ -2,7 +2,7 @@
 
 const Milight = require('./../../lib/milight');
 const DeviceDriver = require('homey-devicedriver');
-const color = require('onecolor');
+const onecolor = require('onecolor');
 const path = require('path');
 
 const DRIVER_TYPE = "RGBW";
@@ -51,7 +51,13 @@ module.exports = new DeviceDriver(path.basename(__dirname), {
 		},
 		light_hue: {
 			set: (device, hue, callback) => {
-				device.zone.setHue(hue);
+				if (device.settings['invert_red_and_green'] === true) {
+					const red = onecolor(`hsl(${hue * 360}, 1, 1)`).red();
+					const green = onecolor(`hsl(${hue * 360}, 1, 1)`).green();
+					const blue = onecolor(`hsl(${hue * 360}, 1, 1)`).blue();
+					const color = onecolor(`rgb(${green},${red},${blue})`);
+					device.zone.setHue(color.hue());
+				} else device.zone.setHue(hue);
 				return callback(null, hue);
 			},
 			persistOverReboot: true,
