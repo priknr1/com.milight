@@ -56,8 +56,8 @@ module.exports = new DeviceDriver(path.basename(__dirname), {
 					const green = onecolor(`hsl(${hue * 360}, 1, 1)`).green();
 					const blue = onecolor(`hsl(${hue * 360}, 1, 1)`).blue();
 					const color = onecolor(`rgb(${green},${red},${blue})`);
-					device.zone.setHue(color.hue());
-				} else device.zone.setHue(hue);
+					device.zone.setHue(calibrateHue(color.hue(), device.settings['hue_calibration'].get()));
+				} else device.zone.setHue(calibrateHue(hue, device.settings['hue_calibration'].get()));
 				return callback(null, hue);
 			},
 			persistOverReboot: true,
@@ -129,3 +129,17 @@ Homey.manager('flow').on('action.set_color_rgbw', (callback, args) => {
 	args.color = myColor.hue();
 	module.exports.capabilities.light_hue.set(args.deviceData, args.color, (err, result) => callback(null, true));
 });
+
+/**
+ * Calibrate hue value, to keep
+ * value in hue range of 0 - 1
+ * @param hue
+ * @param value
+ * @returns {number}
+ */
+function calibrateHue(hue, value) {
+	hue = hue + value;
+	if (hue > 1) return hue - 1;
+	if (hue < 0) return hue + 1;
+	return hue;
+}
