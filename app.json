@@ -66,6 +66,24 @@
 						"en": "Some Milight RGBW controllers have the red and green values switched. If Homey sets a different color on your RGBW led strip than expected, enable this setting.",
 						"nl": "Sommige Milight RGBW controllers hebben de rode en groene waarden omgedraait. Als Homey een andere kleur instelt op de RGBW led strip dan verwacht, vink dan deze checkbox aan."
 					}
+				},
+				{
+					"id": "hue_calibration",
+					"type": "number",
+					"value": 0,
+					"attr": {
+						"min": -0.5,
+						"max": 0.5,
+						"step": 0.01
+					},
+					"label": {
+						"en": "Hue calibration",
+						"nl": "Kleur tint kalibratie"
+					},
+					"hint": {
+						"en": "Use this value to calibrate the hue value send to the device. This can be used to compensate for deviating colors.",
+						"nl": "Gebruik deze waarde om de kleur tint te kalibreren. Dit kan gebruikt worden om te compenseren voor afwijkende kleuren."
+					}
 				}
 			]
 		},
@@ -99,6 +117,26 @@
 				{
 					"id": "add_devices",
 					"template": "add_devices"
+				}
+			],
+			"settings": [
+				{
+					"id": "hue_calibration",
+					"type": "number",
+					"value": 0,
+					"attr": {
+						"min": -0.5,
+						"max": 0.5,
+						"step": 0.01
+					},
+					"label": {
+						"en": "Hue calibration",
+						"nl": "Kleur tint kalibratie"
+					},
+					"hint": {
+						"en": "Use this value to calibrate the hue value send to the device. This can be used to compensate for deviating colors.",
+						"nl": "Gebruik deze waarde om de kleur tint te kalibreren. Dit kan gebruikt worden om te compenseren voor afwijkende kleuren."
+					}
 				}
 			]
 		},
