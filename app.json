@@ -1,247 +1,247 @@
 {
-	"id": "com.milight",
-	"version": "3.0.3",
-	"compatibility": ">=0.8.33",
-	"category": "lights",
-	"name": {
-		"en": "Milight (EasyBulb)",
-		"nl": "Milight (EasyBulb)"
-	},
-	"description": {
-		"en": "Connect your Milight (EasyBulb) light bulbs with Homey",
-		"nl": "Verbind je Milight (EasyBulb) lampen met Homey"
-	},
-	"author": {
-		"name": "Athom B.V."
-	},
-	"images": {
-		"large": "./assets/images/large.jpg",
-		"small": "./assets/images/small.jpg"
-	},
-	"drivers": [
-		{
-			"id": "rgbw_bulb",
-			"name": {
-				"en": "RGBW Bulb",
-				"nl": "RGBW Lamp"
-			},
-			"images": {
-				"large": "./drivers/rgb_bulb/assets/images/large.jpg",
-				"small": "./drivers/rgb_bulb/assets/images/small.jpg"
-			},
-			"class": "light",
-			"capabilities": [
-				"onoff",
-				"dim",
-				"light_hue",
-				"light_temperature",
-				"light_mode"
-			],
-			"pair": [
-				{
-					"id": "start"
-				},
-				{
-					"id": "list_devices",
-					"template": "list_devices",
-					"navigation": {
-						"next": "add_devices"
-					}
-				},
-				{
-					"id": "add_devices",
-					"template": "add_devices"
-				}
-			],
-			"settings": [
-				{
-					"id": "invert_red_and_green",
-					"type": "checkbox",
-					"value": false,
-					"label": {
-						"en": "Invert red and green values",
-						"nl": "Wissel rode en groene waarden om"
-					},
-					"hint": {
-						"en": "Some Milight RGBW controllers have the red and green values switched. If Homey sets a different color on your RGBW led strip than expected, enable this setting.",
-						"nl": "Sommige Milight RGBW controllers hebben de rode en groene waarden omgedraait. Als Homey een andere kleur instelt op de RGBW led strip dan verwacht, vink dan deze checkbox aan."
-					}
-				},
-				{
-					"id": "hue_calibration",
-					"type": "number",
-					"value": 0,
-					"attr": {
-						"min": -0.5,
-						"max": 0.5,
-						"step": 0.01
-					},
-					"label": {
-						"en": "Hue calibration",
-						"nl": "Kleur tint kalibratie"
-					},
-					"hint": {
-						"en": "Use this value to calibrate the hue value send to the device. This can be used to compensate for deviating colors.",
-						"nl": "Gebruik deze waarde om de kleur tint te kalibreren. Dit kan gebruikt worden om te compenseren voor afwijkende kleuren."
-					}
-				}
-			]
-		},
-		{
-			"id": "rgb_bulb",
-			"name": {
-				"en": "RGB Bulb",
-				"nl": "RGB Lamp"
-			},
-			"images": {
-				"large": "./drivers/rgb_bulb/assets/images/large.jpg",
-				"small": "./drivers/rgb_bulb/assets/images/small.jpg"
-			},
-			"class": "light",
-			"capabilities": [
-				"onoff",
-				"dim",
-				"light_hue"
-			],
-			"pair": [
-				{
-					"id": "start"
-				},
-				{
-					"id": "list_devices",
-					"template": "list_devices",
-					"navigation": {
-						"next": "add_devices"
-					}
-				},
-				{
-					"id": "add_devices",
-					"template": "add_devices"
-				}
-			],
-			"settings": [
-				{
-					"id": "hue_calibration",
-					"type": "number",
-					"value": 0,
-					"attr": {
-						"min": -0.5,
-						"max": 0.5,
-						"step": 0.01
-					},
-					"label": {
-						"en": "Hue calibration",
-						"nl": "Kleur tint kalibratie"
-					},
-					"hint": {
-						"en": "Use this value to calibrate the hue value send to the device. This can be used to compensate for deviating colors.",
-						"nl": "Gebruik deze waarde om de kleur tint te kalibreren. Dit kan gebruikt worden om te compenseren voor afwijkende kleuren."
-					}
-				}
-			]
-		},
-		{
-			"id": "white_bulb",
-			"name": {
-				"en": "White Bulb",
-				"nl": "Witte Lamp"
-			},
-			"images": {
-				"large": "./drivers/white_bulb/assets/images/large.jpg",
-				"small": "./drivers/white_bulb/assets/images/small.jpg"
-			},
-			"class": "light",
-			"capabilities": [
-				"onoff",
-				"dim",
-				"light_temperature"
-			],
-			"pair": [
-				{
-					"id": "start"
-				},
-				{
-					"id": "list_devices",
-					"template": "list_devices",
-					"navigation": {
-						"next": "add_devices"
-					}
-				},
-				{
-					"id": "add_devices",
-					"template": "add_devices"
-				}
-			]
-		}
-	],
-	"flow": {
-		"actions": [
-			{
-				"id": "white_mode",
-				"title": {
-					"en": "Enable white mode",
-					"nl": "Activeer wit modus"
-				},
-				"args": [
-					{
-						"name": "deviceData",
-						"type": "device",
-						"filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
-					}
-				]
-			},
-			{
-				"id": "disco_mode",
-				"title": {
-					"en": "Enable random disco mode",
-					"nl": "Zet willekeurige disco modus aan"
-				},
-				"args": [
-					{
-						"name": "deviceData",
-						"type": "device",
-						"filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
-					}
-				]
-			},
-			{
-				"id": "set_color_rgbw",
-				"title": {
-					"en": "Set a color",
-					"nl": "Stel een kleur in"
-				},
-				"args": [
-					{
-						"name": "deviceData",
-						"type": "device",
-						"filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
-					},
-					{
-						"name": "color",
-						"type": "color",
-						"filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
-					}
-				]
-			},
-			{
-				"id": "set_color_rgb",
-				"title": {
-					"en": "Set a color",
-					"nl": "Stel een kleur in"
-				},
-				"args": [
-					{
-						"name": "deviceData",
-						"type": "device",
-						"filter": "driver_uri=homey:app:com.milight&driver_id=rgb_bulb"
-					},
-					{
-						"name": "color",
-						"type": "color",
-						"filter": "driver_uri=homey:app:com.milight&driver_id=rgb_bulb"
-					}
-				]
-			}
-		]
-	}
+  "id": "com.milight",
+  "version": "3.0.3",
+  "compatibility": ">=0.8.33",
+  "category": "lights",
+  "name": {
+    "en": "Milight (EasyBulb)",
+    "nl": "Milight (EasyBulb)"
+  },
+  "description": {
+    "en": "Connect your Milight (EasyBulb) light bulbs with Homey",
+    "nl": "Verbind je Milight (EasyBulb) lampen met Homey"
+  },
+  "author": {
+    "name": "Athom B.V."
+  },
+  "images": {
+    "large": "./assets/images/large.jpg",
+    "small": "./assets/images/small.jpg"
+  },
+  "drivers": [
+    {
+      "id": "rgbw_bulb",
+      "name": {
+        "en": "RGBW Bulb",
+        "nl": "RGBW Lamp"
+      },
+      "images": {
+        "large": "./drivers/rgb_bulb/assets/images/large.jpg",
+        "small": "./drivers/rgb_bulb/assets/images/small.jpg"
+      },
+      "class": "light",
+      "capabilities": [
+        "onoff",
+        "dim",
+        "light_hue",
+        "light_temperature",
+        "light_mode"
+      ],
+      "pair": [
+        {
+          "id": "start"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "id": "invert_red_and_green",
+          "type": "checkbox",
+          "value": false,
+          "label": {
+            "en": "Invert red and green values",
+            "nl": "Wissel rode en groene waarden om"
+          },
+          "hint": {
+            "en": "Some Milight RGBW controllers have the red and green values switched. If Homey sets a different color on your RGBW led strip than expected, enable this setting.",
+            "nl": "Sommige Milight RGBW controllers hebben de rode en groene waarden omgedraait. Als Homey een andere kleur instelt op de RGBW led strip dan verwacht, vink dan deze checkbox aan."
+          }
+        },
+        {
+          "id": "hue_calibration",
+          "type": "number",
+          "value": 0,
+          "attr": {
+            "min": -0.5,
+            "max": 0.5,
+            "step": 0.01
+          },
+          "label": {
+            "en": "Hue calibration",
+            "nl": "Kleur tint kalibratie"
+          },
+          "hint": {
+            "en": "Use this value to calibrate the hue value send to the device. This can be used to compensate for deviating colors.",
+            "nl": "Gebruik deze waarde om de kleur tint te kalibreren. Dit kan gebruikt worden om te compenseren voor afwijkende kleuren."
+          }
+        }
+      ]
+    },
+    {
+      "id": "rgb_bulb",
+      "name": {
+        "en": "RGB Bulb",
+        "nl": "RGB Lamp"
+      },
+      "images": {
+        "large": "./drivers/rgb_bulb/assets/images/large.jpg",
+        "small": "./drivers/rgb_bulb/assets/images/small.jpg"
+      },
+      "class": "light",
+      "capabilities": [
+        "onoff",
+        "dim",
+        "light_hue"
+      ],
+      "pair": [
+        {
+          "id": "start"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "id": "hue_calibration",
+          "type": "number",
+          "value": 0,
+          "attr": {
+            "min": -0.5,
+            "max": 0.5,
+            "step": 0.01
+          },
+          "label": {
+            "en": "Hue calibration",
+            "nl": "Kleur tint kalibratie"
+          },
+          "hint": {
+            "en": "Use this value to calibrate the hue value send to the device. This can be used to compensate for deviating colors.",
+            "nl": "Gebruik deze waarde om de kleur tint te kalibreren. Dit kan gebruikt worden om te compenseren voor afwijkende kleuren."
+          }
+        }
+      ]
+    },
+    {
+      "id": "white_bulb",
+      "name": {
+        "en": "White Bulb",
+        "nl": "Witte Lamp"
+      },
+      "images": {
+        "large": "./drivers/white_bulb/assets/images/large.jpg",
+        "small": "./drivers/white_bulb/assets/images/small.jpg"
+      },
+      "class": "light",
+      "capabilities": [
+        "onoff",
+        "dim",
+        "light_temperature"
+      ],
+      "pair": [
+        {
+          "id": "start"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ]
+    }
+  ],
+  "flow": {
+    "actions": [
+      {
+        "id": "white_mode",
+        "title": {
+          "en": "Enable white mode",
+          "nl": "Activeer wit modus"
+        },
+        "args": [
+          {
+            "name": "deviceData",
+            "type": "device",
+            "filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
+          }
+        ]
+      },
+      {
+        "id": "disco_mode",
+        "title": {
+          "en": "Enable random disco mode",
+          "nl": "Zet willekeurige disco modus aan"
+        },
+        "args": [
+          {
+            "name": "deviceData",
+            "type": "device",
+            "filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
+          }
+        ]
+      },
+      {
+        "id": "set_color_rgbw",
+        "title": {
+          "en": "Set a color",
+          "nl": "Stel een kleur in"
+        },
+        "args": [
+          {
+            "name": "deviceData",
+            "type": "device",
+            "filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
+          },
+          {
+            "name": "color",
+            "type": "color",
+            "filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
+          }
+        ]
+      },
+      {
+        "id": "set_color_rgb",
+        "title": {
+          "en": "Set a color",
+          "nl": "Stel een kleur in"
+        },
+        "args": [
+          {
+            "name": "deviceData",
+            "type": "device",
+            "filter": "driver_uri=homey:app:com.milight&driver_id=rgb_bulb"
+          },
+          {
+            "name": "color",
+            "type": "color",
+            "filter": "driver_uri=homey:app:com.milight&driver_id=rgb_bulb"
+          }
+        ]
+      }
+    ]
+  }
 }
