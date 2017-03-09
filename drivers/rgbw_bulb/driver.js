@@ -58,9 +58,7 @@ module.exports = new DeviceDriver(path.basename(__dirname), {
 					const color = onecolor(`rgb(${green},${red},${blue})`);
 					device.zone.setHue(calibrateHue(color.hue(), device.settings['hue_calibration'].get()));
 				} else device.zone.setHue(calibrateHue(hue, device.settings['hue_calibration'].get()));
-				module.exports.capabilities.light_mode.set(device.data, 'color', err => {
-					if (err) return console.error(err)
-				});
+				module.exports.realtime(device.data, 'light_mode', 'color');
 				return callback(null, hue);
 			},
 			persistOverReboot: true,
@@ -68,9 +66,7 @@ module.exports = new DeviceDriver(path.basename(__dirname), {
 		light_temperature: {
 			set: (device, temperature, callback) => {
 				device.zone.enableWhiteMode();
-				module.exports.capabilities.light_mode.set(device.data, 'temperature', err => {
-					if (err) return console.error(err)
-				});
+				module.exports.realtime(device.data, 'light_mode', 'temperature');
 				return callback(null, 0.5);
 			},
 			persistOverReboot: true,
