@@ -83,6 +83,9 @@ module.exports = new DeviceDriver(path.basename(__dirname), {
 						device.zone.toggleScene();
 						return callback(err, result)
 					});
+				} else if (typeof mode === 'number') {
+					device.zone.toggleScene(mode);
+					return callback(null, mode);
 				}
 			},
 			persistOverReboot: true,
@@ -96,7 +99,7 @@ module.exports = new DeviceDriver(path.basename(__dirname), {
 					const zones = bridges[i].getZones(DRIVER_TYPE);
 					for (let j = 0; j < zones.length; j++) {
 						results.push({
-							name: `Bridge ${parseInt(i) + 1} ${zones[j].name}`,
+							name: (bridges[i].bridgeVersion === 6) ? `iBox Bridge ${parseInt(i) + 1} ${zones[j].name}` : `Bridge ${parseInt(i) + 1} ${zones[j].name}`,
 							data: {
 								id: zones[j].id,
 								bridgeID: bridges[i].id,
@@ -122,6 +125,12 @@ Homey.manager('flow').on('action.white_mode', function (callback, args) {
 Homey.manager('flow').on('action.disco_mode', function (callback, args) {
 	if (!args.hasOwnProperty('deviceData')) return callback(new Error('invalid_parameters'));
 	module.exports.capabilities.light_mode.set(args.deviceData, 'disco', (err, result) => callback(null, true));
+});
+
+// Incoming flow action, disco mode
+Homey.manager('flow').on('action.disco_mode_specific', function (callback, args) {
+	if (!args.hasOwnProperty('deviceData')) return callback(new Error('invalid_parameters'));
+	module.exports.capabilities.light_mode.set(args.deviceData, Number(args.mode), (err, result) => callback(null, true));
 });
 
 // Incoming flow action, set color

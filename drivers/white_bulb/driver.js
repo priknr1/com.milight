@@ -64,7 +64,7 @@ module.exports = new DeviceDriver(path.basename(__dirname), {
 					const zones = bridges[i].getZones(DRIVER_TYPE);
 					for (let j = 0; j < zones.length; j++) {
 						results.push({
-							name: `Bridge ${parseInt(i) + 1} ${zones[j].name}`,
+							name: (bridges[i].bridgeVersion === 6) ? `iBox Bridge ${parseInt(i) + 1} ${zones[j].name}` : `Bridge ${parseInt(i) + 1} ${zones[j].name}`,
 							data: {
 								id: zones[j].id,
 								bridgeID: bridges[i].id,
