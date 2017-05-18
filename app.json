@@ -289,6 +289,20 @@
         ]
       },
       {
+        "id": "enable_night_mode",
+        "title": {
+          "en": "Enable night mode",
+          "nl": "Schakel nacht modus in"
+        },
+        "args": [
+          {
+            "name": "deviceData",
+            "type": "device",
+            "filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
+          }
+        ]
+      },
+      {
         "id": "set_color_rgbw",
         "title": {
           "en": "Set a color",

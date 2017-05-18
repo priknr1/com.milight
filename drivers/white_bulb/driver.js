@@ -49,7 +49,7 @@ module.exports = new DeviceDriver(path.basename(__dirname), {
 			persistOverReboot: true,
 		},
 		light_temperature: {
-			set: (device, hue, callback) => {
+			set: (device, temperature, callback) => {
 				device.zone.enableWhiteMode();
 				return callback(null, 0.5);
 			},
@@ -78,4 +78,15 @@ module.exports = new DeviceDriver(path.basename(__dirname), {
 			}).catch(err => callback(err, false));
 		});
 	}
+});
+
+// Incoming flow action, night mode
+Homey.manager('flow').on('action.enable_night_mode', function (callback, args) {
+	if (!args.hasOwnProperty('deviceData')) return callback(new Error('invalid_parameters'));
+
+	const device = module.exports.getDevice(args.deviceData);
+	if (device instanceof Error) return callback('invalid_device');
+
+	device.zone.enableNightMode();
+	return callback(null, true);
 });

@@ -83,6 +83,9 @@ module.exports = new DeviceDriver(path.basename(__dirname), {
 						device.zone.toggleScene();
 						return callback(err, result)
 					});
+				} else if (mode === 'night') {
+					device.zone.enableNightMode();
+					return callback(null, mode);
 				} else if (typeof mode === 'number') {
 					device.zone.toggleScene(mode);
 					return callback(null, mode);
@@ -131,6 +134,12 @@ Homey.manager('flow').on('action.disco_mode', function (callback, args) {
 Homey.manager('flow').on('action.disco_mode_specific', function (callback, args) {
 	if (!args.hasOwnProperty('deviceData')) return callback(new Error('invalid_parameters'));
 	module.exports.capabilities.light_mode.set(args.deviceData, Number(args.mode), (err, result) => callback(null, true));
+});
+
+// Incoming flow action, night mode
+Homey.manager('flow').on('action.enable_night_mode', function (callback, args) {
+	if (!args.hasOwnProperty('deviceData')) return callback(new Error('invalid_parameters'));
+	module.exports.capabilities.light_mode.set(args.deviceData, 'night', (err, result) => callback(null, true));
 });
 
 // Incoming flow action, set color
