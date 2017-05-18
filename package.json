@@ -6,6 +6,7 @@
   "dependencies": {
     "homey-devicedriver": "file:../../node-homey-devicedriver",
     "homey-log": "~1.0.1",
+    "node-milight-promise": "^0.1.2",
     "onecolor": "~3.0.4",
     "tcp-ping": "~0.1.1"
   },
