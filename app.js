@@ -1,14 +1,16 @@
 'use strict';
 
-// TODO specific scene Flow card: toggleScene(sceneId)
 // TODO RGBWW driver
-// TODO remove TCP PING dependency, use discover bridges to check availability
-// TODO refactor to have a bridge only once in memory to prevent message overflow
 // TODO refactor legacy bridge to use node-milight-promise
-// TODO add flow card for night mode for bridge and new bulbs?
+// TODO multiple initDevice calls?
+// TODO after Unavailable/Available this.light is not properly working
+// TODO test migration from old to new
 
 const Log = require('homey-log').Log;
 
+const MilightManager = require('./lib/milight/Milight.js');
+
 module.exports.init = () => {
 	console.log(`${Homey.manifest.id} running...`);
+	module.exports.BridgeManager = new MilightManager();
 };
