@@ -66,8 +66,8 @@ module.exports = new DeviceDriver(path.basename(__dirname), {
 		},
 		light_temperature: {
 			set: (device, temperature, callback) => {
-				device.zone.enableWhiteMode();
-				return callback(null, 0.5);
+				device.zone.setTemperature(temperature);
+				return callback(null, temperature);
 			},
 			persistOverReboot: true,
 		},
