@@ -10,8 +10,11 @@ module.exports = new DeviceDriver(path.basename(__dirname), {
 	initDevice: (device, callback) => {
 		console.log(`initDevice -> id: ${device.data.id}`);
 
+		// Parse bridgeID stored as base64 in older version of the app
+		const bridgeID = (device.data.bridgeID.includes(':') ? device.data.bridgeID : new Buffer(device.data.bridgeID, 'base64').toString());
+
 		// Look for online bridges
-		Homey.app.BridgeManager.findBridge(device.data.bridgeID).then(bridge => {
+		Homey.app.BridgeManager.findBridge(bridgeID).then(bridge => {
 
 			Homey.app.BridgeManager.registerBridge(bridge, false);
 
@@ -60,6 +63,8 @@ module.exports = new DeviceDriver(path.basename(__dirname), {
 		},
 		dim: {
 			set: (device, dim, callback) => {
+				if (dim < 0.01) module.exports.realtime(device.data, 'onoff', false);
+				else module.exports.realtime(device.data, 'onoff', true);
 				device.zone.setBrightness(dim);
 				return callback(null, dim);
 			},
