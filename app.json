@@ -44,9 +44,6 @@
       },
       "pair": [
         {
-          "id": "start"
-        },
-        {
           "id": "list_devices",
           "template": "list_devices",
           "navigation": {
@@ -117,9 +114,6 @@
       },
       "pair": [
         {
-          "id": "start"
-        },
-        {
           "id": "list_devices",
           "template": "list_devices",
           "navigation": {
@@ -188,9 +182,6 @@
       },
       "pair": [
         {
-          "id": "start"
-        },
-        {
           "id": "list_devices",
           "template": "list_devices",
           "navigation": {
@@ -245,9 +236,6 @@
         }
       },
       "pair": [
-        {
-          "id": "start"
-        },
         {
           "id": "list_devices",
           "template": "list_devices",
@@ -312,6 +300,10 @@
           "en": "Enable specific effect mode",
           "nl": "Zet specifieke effect modus aan"
         },
+        "hint": {
+          "en": "Setting a specific effect mode is only possible for RGBW(W) bulbs connected to the new iBox (with built-in light).",
+          "nl": "Het instellen van eeen specifieke effect modus is alleen mogelijk bij RGBW(W) lampen die zijn verbonden met de nieuwe iBox (met ingebouwde lamp)."
+        },
         "args": [
           {
             "name": "mode",
@@ -370,7 +362,7 @@
               {
                 "id": "8",
                 "label": {
-                  "en": "Effect mode ",
+                  "en": "Effect mode 8",
                   "nl": "Effect modus 8"
                 }
               },
@@ -409,6 +401,10 @@
         "title": {
           "en": "Enable specific effect mode",
           "nl": "Zet specifieke effect modus aan"
+        },
+        "hint": {
+          "en": "Setting a specific effect mode is only possible for RGBW(W) bulbs connected to the new iBox (with built-in light).",
+          "nl": "Het instellen van eeen specifieke effect modus is alleen mogelijk bij RGBW(W) lampen die zijn verbonden met de nieuwe iBox (met ingebouwde lamp)."
         },
         "args": [
           {
