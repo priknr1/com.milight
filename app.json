@@ -3,6 +3,7 @@
   "version": "3.1.0",
   "compatibility": ">=1.0.0",
   "category": "lights",
+  "sdk": 2,
   "name": {
     "en": "Milight (EasyBulb)",
     "nl": "Milight (EasyBulb)"
@@ -260,7 +261,7 @@
         },
         "args": [
           {
-            "name": "deviceData",
+            "name": "device",
             "type": "device",
             "filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
           }
@@ -274,7 +275,7 @@
         },
         "args": [
           {
-            "name": "deviceData",
+            "name": "device",
             "type": "device",
             "filter": "driver_uri=homey:app:com.milight&driver_id=rgbww_bulb"
           }
@@ -288,7 +289,7 @@
         },
         "args": [
           {
-            "name": "deviceData",
+            "name": "device",
             "type": "device",
             "filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
           }
@@ -376,7 +377,7 @@
             ]
           },
           {
-            "name": "deviceData",
+            "name": "device",
             "type": "device",
             "filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
           }
@@ -390,7 +391,7 @@
         },
         "args": [
           {
-            "name": "deviceData",
+            "name": "device",
             "type": "device",
             "filter": "driver_uri=homey:app:com.milight&driver_id=rgbww_bulb"
           }
@@ -478,7 +479,7 @@
             ]
           },
           {
-            "name": "deviceData",
+            "name": "device",
             "type": "device",
             "filter": "driver_uri=homey:app:com.milight&driver_id=rgbww_bulb"
           }
@@ -492,7 +493,7 @@
         },
         "args": [
           {
-            "name": "deviceData",
+            "name": "device",
             "type": "device",
             "filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
           }
@@ -506,7 +507,7 @@
         },
         "args": [
           {
-            "name": "deviceData",
+            "name": "device",
             "type": "device",
             "filter": "driver_uri=homey:app:com.milight&driver_id=rgbww_bulb"
           }
@@ -520,7 +521,7 @@
         },
         "args": [
           {
-            "name": "deviceData",
+            "name": "device",
             "type": "device",
             "filter": "driver_uri=homey:app:com.milight&driver_id=rgbww_bulb"
           },
@@ -539,7 +540,7 @@
         },
         "args": [
           {
-            "name": "deviceData",
+            "name": "device",
             "type": "device",
             "filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
           },
@@ -558,7 +559,7 @@
         },
         "args": [
           {
-            "name": "deviceData",
+            "name": "device",
             "type": "device",
             "filter": "driver_uri=homey:app:com.milight&driver_id=rgb_bulb"
           },
