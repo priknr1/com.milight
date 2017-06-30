@@ -1,7 +1,7 @@
 {
   "id": "com.milight",
-  "version": "3.0.3",
-  "compatibility": ">=0.8.33",
+  "version": "3.1.0",
+  "compatibility": ">=1.0.0",
   "category": "lights",
   "name": {
     "en": "Milight (EasyBulb)",
