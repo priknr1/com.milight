@@ -4,7 +4,7 @@
   "description": "Connect your MiLight (EasyBulb) light bulbs with Homey.",
   "main": "app.js",
   "dependencies": {
-    "homey-devicedriver": "file:../../node-homey-basicdriver",
+    "homey-wifi-device": "file:../../node-homey-wifi-device",
     "homey-log": "1.0.3",
     "node-milight-promise": "0.1.3",
     "onecolor": "3.0.4",

@@ -1,8 +1,6 @@
 'use strict';
 
 // TODO bridge pairing wizard
-// TODO oibackoff like onInit() retry
-// TODO after updateIP() update zones in device object, they still refer to older zones with wrong session ids
 
 const Homey = require('homey');
 const Log = require('homey-log').Log;

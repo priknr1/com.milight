@@ -2,8 +2,17 @@
 
 const Homey = require('homey');
 const onecolor = require('onecolor');
+const HomeyWifiDevice = require('node-homey-wifi-device');
 
-class MilightDevice extends Homey.HomeyDevice {
+const homeyWifiDeviceOptions = {
+	backOffStrategy: {
+		randomisationFactor: 0,
+		initialDelay: 10000,
+		maxDelay: 1000 * 60 * 60 * 12, // 12 hours
+	},
+};
+
+class MilightDevice extends HomeyWifiDevice {
 
 	/**
 	 * Method that will be called when a device is initialized. It will bind the capability
@@ -11,6 +20,8 @@ class MilightDevice extends Homey.HomeyDevice {
 	 * a reference to that bridge.
 	 */
 	onInit() {
+		super.onInit(homeyWifiDeviceOptions);
+
 		this.log(`onInit() -> ${this.getData().bridgeMacAddress} - ${this.getData().driverType} - ${this.getData().zoneNumber}`);
 
 		// Get driverType from driver
@@ -26,18 +37,13 @@ class MilightDevice extends Homey.HomeyDevice {
 				// Register this device with the bridge
 				bridge.registerDevice(this.getData());
 
-				// Get bridge zone and sub zone
-				const zone = bridge.getZone(this.driverType, this.getData().zoneNumber);
-
-
 				// Set available and unavailable when bridge is down
 				bridge
 					.on('offline', () => this.setUnavailable(Homey.__('no_response')))
 					.on('online', () => this.setAvailable());
 
 				// Store additional properties
-				this.name = zone.name;
-				this.zone = zone;
+				this.name = `Zone ${this.zoneNumber} ${this.driverType}`;
 				this.bridge = bridge;
 
 				// General capability listeners
@@ -55,19 +61,27 @@ class MilightDevice extends Homey.HomeyDevice {
 					this.registerCapabilityListener('light_mode', this.onCapabilityLightMode.bind(this));
 				}
 
-				this.log(`onInit() -> ${this.getData().bridgeMacAddress} - ${this.getData().driverType} - ${this.getData().zoneNumber} -> failed`);
+				this.log(`onInit() -> ${this.getData().bridgeMacAddress} - ${this.getData().driverType} - ${this.getData().zoneNumber} -> succeeded`);
 				this.setAvailable();
+
+				// Abort retrying initialization
+				this.resetBackOff();
 			})
 			.catch(err => {
 				this.setUnavailable(Homey.__('no_response'));
-				this.error(`onInit() -> ${this.getData().bridgeMacAddress} - ${this.getData().driverType} - ${this.getData().zoneNumber}-> findBridge() error`, err);
+				this.error(`onInit() -> ${this.getData().bridgeMacAddress} - ${this.getData().driverType} - ${this.getData().zoneNumber} -> findBridge() error`, err);
 
-				// When initialization failed, retry
-				setTimeout(() => {
-					this.log(`onInit() -> ${this.getData().bridgeMacAddress} - ${this.getData().driverType} - ${this.getData().zoneNumber} -> retry init`);
-					this.onInit();
-				}, 30000); // TODO
+				// Retry initialization
+				this.nextBackOff();
 			});
+	}
+
+	/**
+	 * Getter for bridge zone.
+	 * @returns {Zone}
+	 */
+	get zone() {
+		return this.bridge.getZone(this.driverType, this.getData().zoneNumber);
 	}
 
 	/**
