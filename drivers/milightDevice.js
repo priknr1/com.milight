@@ -8,7 +8,7 @@ const homeyWifiDeviceOptions = {
 	backOffStrategy: {
 		randomisationFactor: 0,
 		initialDelay: 10000,
-		maxDelay: 1000 * 60 * 60 * 12, // 12 hours
+		maxDelay: 1000 * 60 * 60, // 1 hour
 	},
 };
 
