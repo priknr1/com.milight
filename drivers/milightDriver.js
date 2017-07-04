@@ -1,6 +1,7 @@
 'use strict';
 
 const Homey = require('homey');
+
 const onecolor = require('onecolor');
 
 const MilightDevice = require('./milightDevice');
@@ -20,41 +21,9 @@ class MilightDriver extends Homey.Driver {
 		// Store driverType
 		this.driverType = options.driverType;
 
-		// Register RGBW/RGBWW Flow Cards
-		if (this.driverType === 'RGBW' || this.driverType === 'RGBWW') {
-			new Homey.FlowCardAction('white_mode')
-				.on('run', (args, state, callback) => {
-					args.device.onCapabilityLightMode('temperature')
-						.then(() => callback(null, true))
-						.catch(err => callback(err));
-				})
-				.register();
-			new Homey.FlowCardAction('disco_mode')
-				.on('run', (args, state, callback) => {
-					args.device.onCapabilityLightMode('disco')
-						.then(() => callback(null, true))
-						.catch(err => callback(err));
-				})
-				.register();
-			new Homey.FlowCardAction('disco_mode_specific')
-				.on('run', (args, state, callback) => {
-					args.device.onCapabilityLightMode(Number(args.mode))
-						.then(() => callback(null, true))
-						.catch(err => callback(err));
-				})
-				.register();
-			new Homey.FlowCardAction('enable_night_mode')
-				.on('run', (args, state, callback) => {
-					args.device.onCapabilityLightMode('night')
-						.then(() => callback(null, true))
-						.catch(err => callback(err));
-				})
-				.register();
-		}
-
-		// Register RGB Flow Cards
-		if (this.driverType === 'RGB') {
-			new Homey.FlowCardAction('set_color_rgbww')
+		// Register Flow Cards for RGB, RGBW and RGBWW
+		if (this.driverType.includes('RGB')) {
+			new Homey.FlowCardAction('set_color_rgb')
 				.on('run', (args, state, callback) => {
 					const myColor = onecolor(args.color);
 					args.color = myColor.hue();
@@ -63,6 +32,38 @@ class MilightDriver extends Homey.Driver {
 						.catch(err => callback(err));
 				})
 				.register();
+
+			// Register Flow Cards for RGBW and RGBWW
+			if (this.driverType.includes('RGBW')) {
+				new Homey.FlowCardAction('white_mode')
+					.on('run', (args, state, callback) => {
+						args.device.onCapabilityLightMode('temperature')
+							.then(() => callback(null, true))
+							.catch(err => callback(err));
+					})
+					.register();
+				new Homey.FlowCardAction('disco_mode')
+					.on('run', (args, state, callback) => {
+						args.device.onCapabilityLightMode('disco')
+							.then(() => callback(null, true))
+							.catch(err => callback(err));
+					})
+					.register();
+				new Homey.FlowCardAction('disco_mode_specific')
+					.on('run', (args, state, callback) => {
+						args.device.onCapabilityLightMode(Number(args.mode))
+							.then(() => callback(null, true))
+							.catch(err => callback(err));
+					})
+					.register();
+				new Homey.FlowCardAction('enable_night_mode')
+					.on('run', (args, state, callback) => {
+						args.device.onCapabilityLightMode('night')
+							.then(() => callback(null, true))
+							.catch(err => callback(err));
+					})
+					.register();
+			}
 		}
 	}
 
