@@ -514,7 +514,7 @@
         ]
       },
       {
-        "id": "set_color_rgbww",
+        "id": "set_color_rgb",
         "title": {
           "en": "Set a color",
           "nl": "Stel een kleur in"
@@ -533,7 +533,7 @@
         ]
       },
       {
-        "id": "set_color_rgbw",
+        "id": "set_color_rgb",
         "title": {
           "en": "Set a color",
           "nl": "Stel een kleur in"
