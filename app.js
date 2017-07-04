@@ -7,7 +7,7 @@ const Log = require('homey-log').Log;
 
 const BridgeManager = require('./lib/milight/BridgeManager.js');
 
-class MilightApp extends Homey.HomeyApp {
+class MilightApp extends Homey.App {
 	onInit() {
 		this.log(`${this.id} running...`);
 		this._BridgeManager = new BridgeManager();
