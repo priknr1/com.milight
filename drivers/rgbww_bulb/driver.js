@@ -107,6 +107,12 @@ module.exports = new DeviceDriver(path.basename(__dirname), {
 				} else if (mode === 'night') {
 					device.zone.enableNightMode();
 					return callback(null, mode);
+				} else if (mode === 'speedup') {
+					device.zone.setSceneSpeedUp();
+					return callback(null, mode);
+				} else if (mode === 'speeddown') {
+					device.zone.setSceneSpeedDown();
+					return callback(null, mode);
 				} else if (typeof mode === 'number') {
 					device.zone.toggleScene(mode);
 					return callback(null, mode);
@@ -157,7 +163,19 @@ Homey.manager('flow').on('action.disco_mode', (callback, args) => {
 	module.exports.capabilities.light_mode.set(args.deviceData, 'disco', (err, result) => callback(null, true));
 });
 
-// Incoming flow action, disco mode
+// Incoming flow action, disco mode faster
+Homey.manager('flow').on('action.disco_mode_faster', (callback, args) => {
+	if (!args.hasOwnProperty('deviceData')) return callback(new Error('invalid_parameters'));
+	module.exports.capabilities.light_mode.set(args.deviceData, 'speedup', (err, result) => callback(null, true));
+});
+
+// Incoming flow action, disco mode slower
+Homey.manager('flow').on('action.disco_mode_slower', (callback, args) => {
+	if (!args.hasOwnProperty('deviceData')) return callback(new Error('invalid_parameters'));
+	module.exports.capabilities.light_mode.set(args.deviceData, 'speeddown', (err, result) => callback(null, true));
+});
+
+// Incoming flow action, disco mode specific
 Homey.manager('flow').on('action.disco_mode_specific', (callback, args) => {
 	if (!args.hasOwnProperty('deviceData')) return callback(new Error('invalid_parameters'));
 	module.exports.capabilities.light_mode.set(args.deviceData, Number(args.mode), (err, result) => callback(null, true));

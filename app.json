@@ -1,6 +1,6 @@
 {
   "id": "com.milight",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "compatibility": ">=1.0.0",
   "category": "lights",
   "name": {
@@ -13,6 +13,13 @@
   },
   "author": {
     "name": "Athom B.V."
+  },
+  "contributors": {
+    "developers": [
+      {
+          "name": "Patrick van der Westen",
+          "email": "pvdwesten@hotmail.com"
+      }]
   },
   "images": {
     "large": "./assets/images/large.jpg",
@@ -477,6 +484,62 @@
               }
             ]
           },
+          {
+            "name": "deviceData",
+            "type": "device",
+            "filter": "driver_uri=homey:app:com.milight&driver_id=rgbww_bulb"
+          }
+        ]
+      },
+      {
+        "id": "disco_mode_faster",
+        "title": {
+          "en": "Make dico mode go faster",
+          "nl": "Zet de effect modus sneller"
+        },
+        "args": [
+          {
+            "name": "deviceData",
+            "type": "device",
+            "filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
+          }
+        ]
+      },
+      {
+        "id": "disco_mode_faster",
+        "title": {
+          "en": "Make dico mode go faster",
+          "nl": "Zet de effect modus sneller"
+        },
+        "args": [
+          {
+            "name": "deviceData",
+            "type": "device",
+            "filter": "driver_uri=homey:app:com.milight&driver_id=rgbww_bulb"
+          }
+        ]
+      },
+      {
+        "id": "disco_mode_slower",
+        "title": {
+          "en": "Make dico mode go slower",
+          "nl": "Zet de effect modus langzamer"
+        },
+        "args": [
+          {
+            "name": "deviceData",
+            "type": "device",
+            "filter": "driver_uri=homey:app:com.milight&driver_id=rgbw_bulb"
+          }
+        ]
+      },
+      {
+        "id": "disco_mode_slower",
+        "title": {
+          "en": "Make dico mode go slower",
+          "nl": "Zet de effect modus langzamer"
+        },
+        "args": [
           {
             "name": "deviceData",
             "type": "device",
