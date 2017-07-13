@@ -63,6 +63,20 @@ class MilightDriver extends Homey.Driver {
 							.catch(err => callback(err));
 					})
 					.register();
+				new Homey.FlowCardAction('disco_mode_faster')
+					.on('run', (args, state, callback) => {
+						args.device.zone.setSceneSpeedUp()
+							.then(() => callback(null, true))
+							.catch(err => callback(err));
+					})
+					.register();
+				new Homey.FlowCardAction('disco_mode_slower')
+					.on('run', (args, state, callback) => {
+						args.device.zone.setSceneSpeedDown()
+							.then(() => callback(null, true))
+							.catch(err => callback(err));
+					})
+					.register();
 			}
 		}
 	}
@@ -83,7 +97,7 @@ class MilightDriver extends Homey.Driver {
 	 */
 	onPair(socket) {
 		socket.on('list_devices', (data, callback) => {
-			Homey.app.BridgeManager.discoverBridges({ temp: true })
+			Homey.app.BridgeManager.discoverBridges({temp: true})
 				.then(bridges => {
 					const results = [];
 					for (let i = 0; i < bridges.length; i++) {

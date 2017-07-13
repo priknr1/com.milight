@@ -2,9 +2,9 @@
 
 const Homey = require('homey');
 const onecolor = require('onecolor');
-const HomeyWifiDevice = require('node-homey-wifi-device');
+const WifiDevice = require('homey-wifidriver').WifiDevice
 
-const homeyWifiDeviceOptions = {
+const wifiDeviceOptions = {
 	backOffStrategy: {
 		randomisationFactor: 0,
 		initialDelay: 10000,
@@ -12,7 +12,7 @@ const homeyWifiDeviceOptions = {
 	},
 };
 
-class MilightDevice extends HomeyWifiDevice {
+class MilightDevice extends WifiDevice {
 
 	/**
 	 * Method that will be called when a device is initialized. It will bind the capability
@@ -20,7 +20,7 @@ class MilightDevice extends HomeyWifiDevice {
 	 * a reference to that bridge.
 	 */
 	onInit() {
-		super.onInit(homeyWifiDeviceOptions);
+		super.onInit(wifiDeviceOptions);
 
 		this.log(`onInit() -> ${this.getData().bridgeMacAddress} - ${this.getData().driverType} - ${this.getData().zoneNumber}`);
 
@@ -149,9 +149,8 @@ class MilightDevice extends HomeyWifiDevice {
 					.then(this.zone.toggleScene);
 			case 'night':
 				return this.zone.enableNightMode();
-			case 'number':
-				return this.zone.toggleScene(mode);
 			default:
+				if (typeof mode === 'number') return this.zone.toggleScene(mode);
 				return Promise.reject('missing_mode_parameter');
 		}
 	}
