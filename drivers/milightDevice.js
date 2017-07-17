@@ -146,7 +146,7 @@ class MilightDevice extends WifiDevice {
 				return this.onCapabilityLightHue(this.getCapabilityValue('light_hue'));
 			case 'disco':
 				return this.onCapabilityLightMode('color')
-					.then(this.zone.toggleScene);
+					.then(() => this.zone.toggleScene());
 			case 'night':
 				return this.zone.enableNightMode();
 			default:
