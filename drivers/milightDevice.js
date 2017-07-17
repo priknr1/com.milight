@@ -162,7 +162,7 @@ class MilightDevice extends WifiDevice {
 	 */
 	onDeleted() {
 		this.log(`onDeleted() -> ${this.getData().bridgeMacAddress} - ${this.getData().driverType} - ${this.getData().zoneNumber}`);
-		this.bridge.deregisterDevice(this.getData());
+		if (typeof this.bridge !== 'undefined') this.bridge.deregisterDevice(this.getData());
 	}
 
 	/**
