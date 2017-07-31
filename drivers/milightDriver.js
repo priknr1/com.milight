@@ -24,63 +24,42 @@ class MilightDriver extends Homey.Driver {
 		// Register Flow Cards for RGB, RGBW and RGBWW
 		if (this.driverType.includes('RGB')) {
 			new Homey.FlowCardAction('set_color_rgb')
-				.on('run', (args, state, callback) => {
+				.register()
+				.registerRunListener(args => {
 					const myColor = onecolor(args.color);
 					args.color = myColor.hue();
-					args.device.onCapabilityLightHue(args.color)
-						.then(() => callback(null, true))
-						.catch(err => callback(err));
-				})
-				.register();
+					return args.device.onCapabilityLightHue(args.color);
+				});
 
 			// Register Flow Cards for RGBW and RGBWW
 			if (this.driverType.includes('RGBW')) {
+
 				new Homey.FlowCardAction('white_mode')
-					.on('run', (args, state, callback) => {
-						args.device.onCapabilityLightMode('temperature')
-							.then(() => callback(null, true))
-							.catch(err => callback(err));
-					})
-					.register();
+					.register()
+					.registerRunListener(args => args.device.onCapabilityLightMode('temperature'));
+
 				new Homey.FlowCardAction('disco_mode')
-					.on('run', (args, state, callback) => {
-						args.device.onCapabilityLightMode('disco')
-							.then(() => callback(null, true))
-							.catch(err => callback(err));
-					})
-					.register();
+					.register()
+					.registerRunListener(args => args.device.onCapabilityLightMode('disco'));
+
 				new Homey.FlowCardAction('disco_mode_specific')
-					.on('run', (args, state, callback) => {
-						args.device.onCapabilityLightMode(Number(args.mode))
-							.then(() => callback(null, true))
-							.catch(err => callback(err));
-					})
-					.register();
+					.register()
+					.registerRunListener(args => args.device.onCapabilityLightMode(Number(args.mode)));
+
 				new Homey.FlowCardAction('enable_night_mode')
-					.on('run', (args, state, callback) => {
-						args.device.onCapabilityLightMode('night')
-							.then(() => callback(null, true))
-							.catch(err => callback(err));
-					})
-					.register();
+					.register()
+					.registerRunListener(args => args.device.onCapabilityLightMode('night'));
+
 				new Homey.FlowCardAction('disco_mode_faster')
-					.on('run', (args, state, callback) => {
-						args.device.zone.setSceneSpeedUp()
-							.then(() => callback(null, true))
-							.catch(err => callback(err));
-					})
-					.register();
+					.register()
+					.registerRunListener(args => args.device.zone.setSceneSpeedUp());
+
 				new Homey.FlowCardAction('disco_mode_slower')
-					.on('run', (args, state, callback) => {
-						args.device.zone.setSceneSpeedDown()
-							.then(() => callback(null, true))
-							.catch(err => callback(err));
-					})
-					.register();
+					.register()
+					.registerRunListener(args => args.device.zone.setSceneSpeedDown());
 			}
 		}
 	}
-
 
 	/**
 	 * Always use MilightDevice as device for this driver.
@@ -97,7 +76,7 @@ class MilightDriver extends Homey.Driver {
 	 */
 	onPair(socket) {
 		socket.on('list_devices', (data, callback) => {
-			Homey.app.BridgeManager.discoverBridges({temp: true})
+			Homey.app.BridgeManager.discoverBridges({ temp: true })
 				.then(bridges => {
 					const results = [];
 					for (let i = 0; i < bridges.length; i++) {
