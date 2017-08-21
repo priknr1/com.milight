@@ -1,4 +1,4 @@
-# MiLight (easybulb) app for Homey  
+# MiLight (EasyBulb) app for Homey  
 Connect your MiLight (EasyBulb) light bulbs with Homey.
 
 Homey connects with your WiFi bridge to control the lights.
@@ -13,6 +13,7 @@ Also compatible with:
 
 ### Changelog
 v3.1.1
+- Rewrite app for SDKv2
 - Add effect mode speed up/down Flow Cards
 
 v3.1.0
