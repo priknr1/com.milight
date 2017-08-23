@@ -2,7 +2,7 @@
 
 const Homey = require('homey');
 const onecolor = require('onecolor');
-const WifiDevice = require('homey-wifidriver').WifiDevice
+const WifiDevice = require('homey-wifidriver').WifiDevice;
 
 const wifiDeviceOptions = {
 	backOffStrategy: {
@@ -51,14 +51,20 @@ class MilightDevice extends WifiDevice {
 				this.registerCapabilityListener('dim', this.onCapabilityDim.bind(this));
 
 				// Driver specific capability listeners
-				if (this.driverType.includes('RGB')) {
-					this.registerCapabilityListener('light_hue', this.onCapabilityLightHue.bind(this));
-				}
-				if (this.driverType === 'WHITE' || this.driverType === 'RGBWW') {
+				if (this.hasCapability('light_temperature')) {
 					this.registerCapabilityListener('light_temperature', this.onCapabilityLightTemperature.bind(this));
 				}
-				if (this.driverType.includes('RGBW')) {
+				if (this.hasCapability('light_mode')) {
 					this.registerCapabilityListener('light_mode', this.onCapabilityLightMode.bind(this));
+				}
+				if (this.hasCapability('light_hue') && this.hasCapability('light_saturation')) {
+					this.registerMultipleCapabilityListener(['light_hue', 'light_saturation'], async (valueObj) => {
+						await this.onCapabilityLightHue(valueObj['light_hue'] || this.getCapabilityValue('light_hue'));
+						await this.onCapabilityLightSaturation(valueObj['light_saturation'] || this.getCapabilityValue('light_saturation'));
+						return Promise.resolve();
+					}, 500);
+				} else if (this.hasCapability('light_hue')) {
+					this.registerCapabilityListener('light_hue', this.onCapabilityLightHue.bind(this));
 				}
 
 				this.log(`onInit() -> ${this.getData().bridgeMacAddress} - ${this.getData().driverType} - ${this.getData().zoneNumber} -> succeeded`);
@@ -116,11 +122,24 @@ class MilightDevice extends WifiDevice {
 			const green = onecolor(`hsl(${hue * 360}, 1, 1)`).green();
 			const blue = onecolor(`hsl(${hue * 360}, 1, 1)`).blue();
 			const color = onecolor(`rgb(${green},${red},${blue})`);
+			this.setCapabilityValue('onoff', true);
 			this.setCapabilityValue('light_mode', 'color');
 			return this.zone.setHue(MilightDevice.calibrateHue(color.hue(), this.getSetting('invert_red_and_green')));
 		}
+		this.setCapabilityValue('onoff', true);
 		this.setCapabilityValue('light_mode', 'color');
 		return this.zone.setHue(MilightDevice.calibrateHue(hue, this.getSetting('invert_red_and_green')));
+	}
+
+	/**
+	 * This method will be called when the light saturation needs to be changed.
+	 * @param saturation
+	 * @returns {Promise}
+	 */
+	onCapabilityLightSaturation(saturation) {
+		this.setCapabilityValue('onoff', true);
+		this.setCapabilityValue('light_mode', 'color');
+		return this.zone.setSaturation(saturation);
 	}
 
 	/**
@@ -129,6 +148,7 @@ class MilightDevice extends WifiDevice {
 	 * @returns {Promise}
 	 */
 	onCapabilityLightTemperature(temperature) {
+		this.setCapabilityValue('onoff', true);
 		this.setCapabilityValue('light_mode', 'temperature');
 		return this.zone.setTemperature(temperature);
 	}
@@ -139,6 +159,7 @@ class MilightDevice extends WifiDevice {
 	 * @returns {Promise}
 	 */
 	onCapabilityLightMode(mode) {
+		this.setCapabilityValue('onoff', true);
 		switch (mode) {
 			case 'temperature':
 				return this.zone.enableWhiteMode(this.getCapabilityValue('light_temperature'));
