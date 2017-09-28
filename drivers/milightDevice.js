@@ -15,6 +15,25 @@ const wifiDeviceOptions = {
 class MilightDevice extends WifiDevice {
 
 	/**
+	 * Override getData() to parse older data objects and add missing properties.
+	 * @returns {Object} deviceData
+	 */
+	getData() {
+		const deviceData = super.getData();
+
+		// Parse mac address from old device object
+		if (!deviceData.hasOwnProperty('bridgeMacAddress') && deviceData.hasOwnProperty('bridgeID')) {
+			const buf = new Buffer(deviceData.bridgeID, 'base64');
+			deviceData.bridgeMacAddress = buf.toString('utf8');
+		}
+
+		// Add driver type property
+		if (!deviceData.hasOwnProperty('driverType')) deviceData.driverType = this.getDriver().driverType;
+
+		return deviceData;
+	}
+
+	/**
 	 * Method that will be called when a device is initialized. It will bind the capability
 	 * listeners specific to the driverType, and it will fetch/search a bridge and stores
 	 * a reference to that bridge.
@@ -23,9 +42,6 @@ class MilightDevice extends WifiDevice {
 		super.onInit(wifiDeviceOptions);
 
 		this.log(`onInit() -> ${this.getData().bridgeMacAddress} - ${this.getData().driverType} - ${this.getData().zoneNumber}`);
-
-		// Get driverType from driver
-		this.driverType = this.getDriver().driverType;
 
 		// Start discovery or retrieve already discovered bridge
 		Homey.app.BridgeManager.findBridge(this.getData().bridgeMacAddress)
@@ -43,7 +59,7 @@ class MilightDevice extends WifiDevice {
 					.on('online', () => this.setAvailable());
 
 				// Store additional properties
-				this.name = `Zone ${this.zoneNumber} ${this.driverType}`;
+				this.name = `Zone ${this.getData().zoneNumber} ${this.getData().driverType}`;
 				this.bridge = bridge;
 
 				// General capability listeners
@@ -87,7 +103,7 @@ class MilightDevice extends WifiDevice {
 	 * @returns {Zone}
 	 */
 	get zone() {
-		return this.bridge.getZone(this.driverType, this.getData().zoneNumber);
+		return this.bridge.getZone(this.getData().driverType, this.getData().zoneNumber);
 	}
 
 	/**
@@ -123,11 +139,11 @@ class MilightDevice extends WifiDevice {
 			const blue = onecolor(`hsl(${hue * 360}, 1, 1)`).blue();
 			const color = onecolor(`rgb(${green},${red},${blue})`);
 			this.setCapabilityValue('onoff', true);
-			this.setCapabilityValue('light_mode', 'color');
+			if (this.hasCapability('light_mode')) this.setCapabilityValue('light_mode', 'color');
 			return this.zone.setHue(MilightDevice.calibrateHue(color.hue(), this.getSetting('invert_red_and_green')));
 		}
 		this.setCapabilityValue('onoff', true);
-		this.setCapabilityValue('light_mode', 'color');
+		if (this.hasCapability('light_mode')) this.setCapabilityValue('light_mode', 'color');
 		return this.zone.setHue(MilightDevice.calibrateHue(hue, this.getSetting('invert_red_and_green')));
 	}
 
@@ -138,7 +154,7 @@ class MilightDevice extends WifiDevice {
 	 */
 	onCapabilityLightSaturation(saturation) {
 		this.setCapabilityValue('onoff', true);
-		this.setCapabilityValue('light_mode', 'color');
+		if (this.hasCapability('light_mode')) this.setCapabilityValue('light_mode', 'color');
 		return this.zone.setSaturation(saturation);
 	}
 
@@ -149,7 +165,7 @@ class MilightDevice extends WifiDevice {
 	 */
 	onCapabilityLightTemperature(temperature) {
 		this.setCapabilityValue('onoff', true);
-		this.setCapabilityValue('light_mode', 'temperature');
+		if (this.hasCapability('light_mode')) this.setCapabilityValue('light_mode', 'temperature');
 		return this.zone.setTemperature(temperature);
 	}
 
