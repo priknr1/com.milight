@@ -1,6 +1,6 @@
 {
   "id": "com.milight",
-  "version": "3.1.5",
+  "version": "3.1.6",
   "compatibility": ">=1.5.0",
   "category": "lights",
   "sdk": 2,
@@ -75,8 +75,8 @@
             "nl": "Wissel rode en groene waarden om"
           },
           "hint": {
-            "en": "Some Milight RGBWW controllers have the red and green values switched. If Homey sets a different color on your RGBWW led strip than expected, enable this setting.",
-            "nl": "Sommige Milight RGBWW controllers hebben de rode en groene waarden omgedraait. Als Homey een andere kleur instelt op de RGBWW led strip dan verwacht, vink dan deze checkbox aan."
+            "en": "Some Milight lights have the red and green values switched. If Homey sets a different color on your light than expected, enable this setting.",
+            "nl": "Sommige Milight lampen hebben de rode en groene waarden omgedraait. Als Homey een andere kleur instelt op de lamp dan verwacht, vink dan deze checkbox aan."
           }
         },
         {
@@ -145,8 +145,8 @@
             "nl": "Wissel rode en groene waarden om"
           },
           "hint": {
-            "en": "Some Milight RGBW controllers have the red and green values switched. If Homey sets a different color on your RGBW led strip than expected, enable this setting.",
-            "nl": "Sommige Milight RGBW controllers hebben de rode en groene waarden omgedraait. Als Homey een andere kleur instelt op de RGBW led strip dan verwacht, vink dan deze checkbox aan."
+            "en": "Some Milight lights have the red and green values switched. If Homey sets a different color on your light than expected, enable this setting.",
+            "nl": "Sommige Milight lampen hebben de rode en groene waarden omgedraait. Als Homey een andere kleur instelt op de lamp dan verwacht, vink dan deze checkbox aan."
           }
         },
         {
@@ -204,6 +204,19 @@
         }
       ],
       "settings": [
+        {
+          "id": "invert_red_and_green",
+          "type": "checkbox",
+          "value": false,
+          "label": {
+            "en": "Invert red and green values",
+            "nl": "Wissel rode en groene waarden om"
+          },
+          "hint": {
+            "en": "Some Milight lights have the red and green values switched. If Homey sets a different color on your light than expected, enable this setting.",
+            "nl": "Sommige Milight lampen hebben de rode en groene waarden omgedraait. Als Homey een andere kleur instelt op de lamp dan verwacht, vink dan deze checkbox aan."
+          }
+        },
         {
           "id": "hue_calibration",
           "type": "number",

@@ -12,6 +12,11 @@ Also compatible with:
 - Kreuzer
 
 ### Changelog
+
+v3.1.6
+- Minor fixes to device settings
+- Fix migration from SDKv1 to SDKv2
+
 v3.1.1
 - Rewrite app for SDKv2
 - Add effect mode speed up/down Flow Cards

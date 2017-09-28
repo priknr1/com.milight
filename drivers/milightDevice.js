@@ -140,11 +140,11 @@ class MilightDevice extends WifiDevice {
 			const color = onecolor(`rgb(${green},${red},${blue})`);
 			this.setCapabilityValue('onoff', true);
 			if (this.hasCapability('light_mode')) this.setCapabilityValue('light_mode', 'color');
-			return this.zone.setHue(MilightDevice.calibrateHue(color.hue(), this.getSetting('invert_red_and_green')));
+			return this.zone.setHue(MilightDevice.calibrateHue(color.hue(), this.getSetting('hue_calibration')));
 		}
 		this.setCapabilityValue('onoff', true);
 		if (this.hasCapability('light_mode')) this.setCapabilityValue('light_mode', 'color');
-		return this.zone.setHue(MilightDevice.calibrateHue(hue, this.getSetting('invert_red_and_green')));
+		return this.zone.setHue(MilightDevice.calibrateHue(hue, this.getSetting('hue_calibration')));
 	}
 
 	/**
