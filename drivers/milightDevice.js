@@ -23,8 +23,15 @@ class MilightDevice extends WifiDevice {
 
 		// Parse mac address from old device object
 		if (!deviceData.hasOwnProperty('bridgeMacAddress') && deviceData.hasOwnProperty('bridgeID')) {
-			const buf = new Buffer(deviceData.bridgeID, 'base64');
-			deviceData.bridgeMacAddress = buf.toString('utf8');
+			if (deviceData.bridgeID.includes(':')) {
+				deviceData.bridgeMacAddress = deviceData.bridgeID;
+			}
+			else {
+
+				// Handle Base64 encoded mac address
+				const buf = new Buffer(deviceData.bridgeID, 'base64');
+				deviceData.bridgeMacAddress = buf.toString('utf8');
+			}
 		}
 
 		// Add driver type property
