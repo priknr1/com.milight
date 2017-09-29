@@ -13,7 +13,7 @@ Also compatible with:
 
 ### Changelog
 
-v3.1.6
+v3.1.7
 - Minor fixes to device settings
 - Fix migration from SDKv1 to SDKv2
 
