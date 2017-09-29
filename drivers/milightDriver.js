@@ -79,23 +79,26 @@ class MilightDriver extends Homey.Driver {
 			Homey.app.BridgeManager.discoverBridges({ temp: true })
 				.then(bridges => {
 					const results = [];
-					for (let i = 0; i < bridges.length; i++) {
-						const zones = bridges[i].getZones(this.driverType);
-						for (let j = 0; j < zones.length; j++) {
-							results.push({
-								name: (bridges[i].bridgeVersion === 6) ? `iBox Bridge ${parseInt(i) + 1} ${zones[j].name}` : `Bridge ${parseInt(i) + 1} ${zones[j].name}`,
-								data: {
-									id: zones[j].id,
-									bridgeMacAddress: bridges[i].mac,
-									zoneNumber: parseInt(j) + 1,
-									driverType: this.driverType,
-								},
-							});
+					if (Array.isArray(bridges)) {
+						for (let i = 0; i < bridges.length; i++) {
+							const zones = bridges[i].getZones(this.driverType);
+							if (!Array.isArray(zones)) break;
+							for (let j = 0; j < zones.length; j++) {
+								results.push({
+									name: (bridges[i].bridgeVersion === 6) ? `iBox Bridge ${parseInt(i) + 1} ${zones[j].name}` : `Bridge ${parseInt(i) + 1} ${zones[j].name}`,
+									data: {
+										id: zones[j].id,
+										bridgeMacAddress: bridges[i].mac,
+										zoneNumber: parseInt(j) + 1,
+										driverType: this.driverType,
+									},
+								});
+							}
 						}
 					}
 					return callback(null, results);
 				})
-				.catch(err => callback(err, false));
+				.catch(err => callback(err.stack, false));
 		});
 		socket.on('disconnect', () => setTimeout(() => Homey.app.BridgeManager.deregisterTempBridges, 30000));
 	}
