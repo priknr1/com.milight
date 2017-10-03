@@ -1,11 +1,21 @@
-"use strict";
+'use strict';
 
+// TODO bridge pairing wizard
+
+const Homey = require('homey');
 const Log = require('homey-log').Log;
 
-var self = module.exports = {
+const BridgeManager = require('./lib/milight/BridgeManager.js');
 
-	init: function () {
-		console.log('com.milight is running...');
+class MilightApp extends Homey.App {
+	onInit() {
+		this.log(`${this.id} running...`);
+		this._BridgeManager = new BridgeManager();
 	}
 
-};
+	get BridgeManager() {
+		return this._BridgeManager;
+	}
+}
+
+module.exports = MilightApp;
